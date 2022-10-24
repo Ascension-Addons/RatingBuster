@@ -1,6 +1,6 @@
 ﻿--[[
 Name: RatingBuster frFR locale (incomplete)
-Revision: $Revision: 294 $
+Revision: $Revision: 282 $
 Translated by:
 - Tixu@Curse, Silaor and renchap
 ]]
@@ -70,8 +70,10 @@ L["Show Rating conversions in tooltips"] = "Affiche dans l'infobulle les gains a
 -- /rb rating detail
 --L["Show Detailed Conversions Text"] = true -- à traduire
 --L["Show detailed text for Resilience and Expertise conversions"] = true -- à traduire
+-- /rb rating def
 --L["Defense Breakdown"] = true -- à traduire
 --L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"] = true
+-- /rb rating wpn
 --L["Weapon Skill Breakdown"] = true -- à traduire
 --L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"] = true -- à traduire
 -- /rb rating exp
@@ -335,13 +337,13 @@ L["Sum Healing"] = "Cumul Soins"
 L["Healing <- Healing, Intellect, Spirit, Agility, Strength"] = "Soins <- Soins, Intel, Esprit, Agi, Force"
 -- /rb sum stat hit
 L["Sum Hit Chance"] = "Cumul Toucher"
---L["Hit Chance <- Hit Rating"] = "Toucher <- Toucher, Score Arme"
+L["Hit Chance <- Hit Rating, Weapon Skill Rating"] = "Toucher <- Toucher, Score Arme"
 -- /rb sum stat hitspell
 L["Sum Spell Hit Chance"] = "Cumul Toucher des Sorts"
 L["Spell Hit Chance <- Spell Hit Rating"] = "Toucher des Sorts <- Toucher des Sorts"
 -- /rb sum stat crit
 L["Sum Crit Chance"] = "Cumul Crit"
---L["Crit Chance <- Crit Rating, Agility"] = "Crit <- %Crit, Agi, Comp Arme"
+L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"] = "Crit <- %Crit, Agi, Comp Arme"
 -- /rb sum stat critspell
 L["Sum Spell Crit Chance"] = "Cumul Crit Sorts"
 L["Spell Crit Chance <- Spell Crit Rating, Intellect"] = "Crit Sorts <- %Crit Sorts, Intel"
@@ -359,19 +361,25 @@ L["Sum Health Regen when out of combat"] = "Cumul Regen Vie HC"
 L["Health Regen when out of combat <- Spirit"] = "Regen Vie HC <- Esprit"
 -- /rb sum stat armor
 L["Sum Armor"] = "Cumul Armure"
---L["Armor <- Armor from items and bonuses"] = "Armure <- Armure Objets, Armure Bonus, Agi, Intel"
+L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"] = "Armure <- Armure Objets, Armure Bonus, Agi, Intel"
 -- /rb sum stat blockvalue
+L["Sum Block Value"] = "Cumul Dégats Bloqués"
+L["Block Value <- Block Value, Strength"] = "Dégats Bloqués <- Dégats Bloqués, Force"
 -- /rb sum stat dodge
 L["Sum Dodge Chance"] = "Cumul Esquive"
---L["Dodge Chance <- Dodge Rating, Agility"] = "Esquive <- Score Esquive, Agi, Score Def"
+L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"] = "Esquive <- Score Esquive, Agi, Score Def"
 -- /rb sum stat parry
 L["Sum Parry Chance"] = "Cumul Parade"
---L["Parry Chance <- Parry Rating"] = "Parade <- Score Parade, Score Def"
+L["Parry Chance <- Parry Rating, Defense Rating"] = "Parade <- Score Parade, Score Def"
 -- /rb sum stat block
 L["Sum Block Chance"] = "Cumul Bloquage"
---L["Block Chance <- Block Rating"] = "Bloquage <- Score Bloquage, Score Def"
+L["Block Chance <- Block Rating, Defense Rating"] = "Bloquage <- Score Bloquage, Score Def"
 -- /rb sum stat avoidhit
+L["Sum Hit Avoidance"] = "Cumul Raté"
+L["Hit Avoidance <- Defense Rating"] = "Raté <- Score Def"
 -- /rb sum stat avoidcrit
+L["Sum Crit Avoidance"] = "Cumul Def Crit"
+L["Crit Avoidance <- Defense Rating, Resilience"] = "Def Crit <- Score Def, Resilience"
 -- /rb sum stat neglectdodge
 L["Sum Dodge Neglect"] = "Cumul Ignore Esquive"
 --L["Dodge Neglect <- Weapon Skill Rating"] = "Ignore Esquive <- Score Arme"
@@ -379,6 +387,8 @@ L["Sum Dodge Neglect"] = "Cumul Ignore Esquive"
 L["Sum Parry Neglect"] = "Cumul Ignore Parade"
 --L["Parry Neglect <- Weapon Skill Rating"] = "Ignore Parade <- Score Arme"
 -- /rb sum stat neglectblock
+L["Sum Block Neglect"] = "Cumul Ignore Bloquage"
+L["Block Neglect <- Weapon Skill Rating"] = "Ignore Bloquage <- Score Arme"
 -- /rb sum stat resarcane
 L["Sum Arcane Resistance"] = "Cumul RA"
 L["Arcane Resistance Summary"] = "Résumé de la RA"
@@ -419,6 +429,7 @@ L["Intellect Summary"] = "Résumé de l'Intelligence"
 L["Sum Spirit"] = "Cumul Esprit"
 L["Spirit Summary"] = "Résumé de l'Esprit"
 -- /rb sum statcomp def
+L["Sum Defense"] = "Cumul Def"
 L["Defense <- Defense Rating"] = "Def <- Score def"
 -- /rb sum statcomp wpn
 L["Sum Weapon Skill"] = "Cumul Comp Arme"
@@ -426,12 +437,6 @@ L["Weapon Skill <- Weapon Skill Rating"] = "Comp Arme <- Score Arme"
 -- /rb sum physical exprating
 --L["Sum Expertise Rating"] = true
 --L["Expertise Rating Summary"] = true
--- /rb sum basic mastery
---L["Sum Mastery"] = ""
---L["Mastery Summary"] = ""
--- /rb sum basic masteryrating
---L["Sum Mastery Rating"] = ""
---L["Mastery Rating Summary"] = ""
 ---------------------------------------------------------------------------
 -- /rb sum gemset
 L["Gem Set"] = "Set de gemme"

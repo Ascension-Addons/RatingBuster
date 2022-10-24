@@ -1,10 +1,10 @@
 --[[
 Name: RatingBuster
 Description: Converts combat ratings in tooltips into normal percentages.
-Revision: $Revision: 294 $
+Revision: $Revision: 284 $
 Author: Whitetooth
 Email: hotdogee [at] gmail [dot] com
-LastUpdate: $Date: 2010-10-22 16:07:47 +0000 (Fri, 22 Oct 2010) $
+LastUpdate: $Date: 2010-04-28 03:39:19 +0000 (Wed, 28 Apr 2010) $
 ]]
 
 ---------------
@@ -15,7 +15,7 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local AceDB = LibStub("AceDB-3.0")
 local TipHooker = LibStub("LibTipHooker-1.1")
-local StatLogic = LibStub("LibStatLogic-1.2")
+local StatLogic = LibStub("LibStatLogic-1.1")
 local L = LibStub("AceLocale-3.0"):GetLocale("RatingBuster")
 local BI = LibStub("LibBabble-Inventory-3.0"):GetLookupTable()
 
@@ -25,20 +25,21 @@ local BI = LibStub("LibBabble-Inventory-3.0"):GetLookupTable()
 --------------------
 -- AceAddon Initialization
 RatingBuster = LibStub("AceAddon-3.0"):NewAddon("RatingBuster", "AceConsole-3.0", "AceEvent-3.0")
-RatingBuster.version = "1.5.0 (r"..gsub("$Revision: 294 $", "$Revision: (%d+) %$", "%1")..")"
-RatingBuster.date = gsub("$Date: 2010-10-22 16:07:47 +0000 (Fri, 22 Oct 2010) $", "^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
+RatingBuster.version = "1.5.0 (r" .. gsub("$Revision: 284 $", "$Revision: (%d+) %$", "%1") .. ")"
+RatingBuster.date = gsub("$Date: 2010-04-28 03:39:19 +0000 (Wed, 28 Apr 2010) $", "^.-(%d%d%d%d%-%d%d%-%d%d).-$", "%1")
 
 
 -----------
 -- Cache --
 -----------
 local cache = {}
-setmetatable(cache, {__mode = "kv"}) -- weak table to enable garbage collection
+setmetatable(cache, { __mode = "kv" }) -- weak table to enable garbage collection
 local function clearCache()
 	for k in pairs(cache) do
 		cache[k] = nil
 	end
 end
+
 --debug
 --RatingBuster.cache = cache
 
@@ -47,7 +48,7 @@ end
 -- Local Variables --
 ---------------------
 local _
-local _, class = UnitClass("player")
+local class = "DRUID"
 local playerLevel = UnitLevel("player") or 80
 local calcLevel
 local profileDB -- Initialized in :OnInitialize()
@@ -89,7 +90,7 @@ local profileDefault = {
 	showItemID = false,
 	useRequiredLevel = true,
 	customLevel = 0,
-	textColor = {r = 1.0, g = 0.996,  b = 0.545, hex = "|cfffffe8b"},
+	textColor = { r = 1.0, g = 0.996, b = 0.545, hex = "|cfffffe8b" },
 	enableTextColor = true,
 	enableStatMods = true,
 	enableAvoidanceDiminishingReturns = true,
@@ -97,6 +98,8 @@ local profileDefault = {
 	ratingSpell = false,
 	ratingPhysical = false,
 	detailedConversionText = false,
+	defBreakDown = false,
+	wpnBreakDown = false,
 	expBreakDown = false,
 	showStats = 0,
 	showSum = 0,
@@ -120,7 +123,7 @@ local profileDefault = {
 	showZeroValueStat = false,
 	calcDiff = true,
 	calcSum = true,
---[[
+	--[[
 Str -> AP, Block, Healing
 Agi -> Crit, Dodge, AP, RAP, Armor
 Sta -> Health, SpellDmg
@@ -130,34 +133,54 @@ Spi -> MP5, MP5NC, HP5, SpellDmg, Healing
 	-- Base stat conversions
 	showAPFromStr = false,
 	showBlockValueFromStr = false,
-	
+
 	showCritFromAgi = true,
 	showDodgeFromAgi = true,
 	showAPFromAgi = false,
 	showRAPFromAgi = false,
 	showArmorFromAgi = false,
 	showHealingFromAgi = false, -- Druid - Nurturing Instinct
-	
+
 	showHealthFromSta = false,
 	showSpellDmgFromSta = false, -- Warlock
-	
+
 	showManaFromInt = false,
 	showSpellCritFromInt = true,
 	showSpellDmgFromInt = false, -- Druid, Mage, Paladin, Shaman, Warlock
 	showHealingFromInt = false, -- Druid, Paladin, Shaman
-	showMP5FromInt = false, 
+	showMP5FromInt = false,
 	showMP5NCFromInt = false,
 	showRAPFromInt = false, -- Hunter
 	showArmorFromInt = false, -- Mage
-	
+
 	showMP5FromSpi = false, -- Druid, Mage, Priest
 	showMP5NCFromSpi = false,
 	showHP5FromSpi = false,
 	showSpellDmgFromSpi = false, -- Priest
 	showHealingFromSpi = false, -- Priest
 	showSpellCritFromSpi = false, -- Mage
-	
+
 	showAPFromArmor = false, -- Warrior, DK
+
+
+	--Ascension custom stuff
+	showArmoredToTheTeeth = false,
+	showConviction = false,
+	showDivineStrength = false,
+	showIronWill = false,
+
+	showHunterVSWild = false,
+
+	showCombatExperience = false,
+	showNaturalReaction = false,
+	showShamanisticFocus = false,
+	showThunderingStrikes = false,
+
+	showSpiritTap = false,
+	showMeditation = false,
+	showMoltenArmor = false,
+	showFelArmor = false,
+
 	------------------
 	-- Stat Summary --
 	------------------
@@ -173,8 +196,6 @@ Spi -> MP5, MP5NC, HP5, SpellDmg, Healing
 	sumSta = false,
 	sumInt = false,
 	sumSpi = false,
-	sumMastery = false,
-	sumMasteryRating = false,
 	-- Physical
 	sumAP = false,
 	sumRAP = false,
@@ -192,11 +213,16 @@ Spi -> MP5, MP5NC, HP5, SpellDmg, Healing
 	sumRangedHaste = false,
 	sumRangedHasteRating = false,
 	sumExpertise = false,
-  sumExpertiseRating = false,
+	sumExpertiseRating = false,
+	sumWeaponSkill = false,
 	sumDodgeNeglect = false,
 	sumParryNeglect = false,
+	sumBlockNeglect = false,
 	sumWeaponMaxDamage = false,
 	sumWeaponDPS = false,
+	sumIgnoreArmor = false,
+	sumArmorPenetration = false, -- new
+	sumArmorPenetrationRating = false, -- new
 	-- Spell
 	sumSpellDmg = false,
 	sumArcaneDmg = false,
@@ -221,6 +247,7 @@ Spi -> MP5, MP5NC, HP5, SpellDmg, Healing
 	sumParryRating = false,
 	sumBlock = false,
 	sumBlockRating = false,
+	sumBlockValue = false,
 	sumHitAvoid = false,
 	sumCritAvoid = false,
 	sumArcaneResist = false,
@@ -229,6 +256,7 @@ Spi -> MP5, MP5NC, HP5, SpellDmg, Healing
 	sumFireResist = false,
 	sumShadowResist = false,
 	sumResilience = false,
+	sumDefense = false,
 	sumTankPoints = false,
 	sumTotalReduction = false,
 	sumAvoidance = false,
@@ -325,7 +353,6 @@ Spi -> MP5, MP5NC, HP5, SpellDmg, Healing
 
 -- Class specific defaults
 if class == "DRUID" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingSpell = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
@@ -335,6 +362,7 @@ if class == "DRUID" then
 	profileDefault.sumCrit = true
 	profileDefault.sumHaste = true
 	profileDefault.sumExpertise = true
+	profileDefault.sumArmorPenetration = true
 	profileDefault.sumDodge = true
 	profileDefault.sumArmor = true
 	profileDefault.sumResilience = true
@@ -354,7 +382,6 @@ if class == "DRUID" then
 	profileDefault.sumIgnoreCloth = false
 	profileDefault.sumIgnoreLeather = false
 elseif class == "HUNTER" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
 	profileDefault.sumMP = true
@@ -363,6 +390,7 @@ elseif class == "HUNTER" then
 	profileDefault.sumRangedHit = true
 	profileDefault.sumRangedCrit = true
 	profileDefault.sumRangedHaste = true
+	profileDefault.sumArmorPenetration = true
 	profileDefault.sumMP5 = true
 	profileDefault.showMP5FromInt = true -- Aspect of the Viper
 	profileDefault.showDodgeFromAgi = false
@@ -372,7 +400,6 @@ elseif class == "HUNTER" then
 	profileDefault.sumIgnoreLeather = false
 	profileDefault.sumIgnoreMail = false
 elseif class == "MAGE" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingSpell = true
 	profileDefault.sumHP = true
 	profileDefault.sumMP = true
@@ -391,7 +418,6 @@ elseif class == "MAGE" then
 	profileDefault.showSpellCritFromSpi = true -- Molten Armor
 	profileDefault.sumIgnoreCloth = false
 elseif class == "PALADIN" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingSpell = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
@@ -402,6 +428,7 @@ elseif class == "PALADIN" then
 	profileDefault.sumCrit = true
 	profileDefault.sumHaste = true
 	profileDefault.sumExpertise = true
+	profileDefault.sumArmorPenetration = true
 	profileDefault.sumHolyDmg = true
 	profileDefault.sumSpellHit = true
 	profileDefault.sumSpellCrit = true
@@ -411,6 +438,8 @@ elseif class == "PALADIN" then
 	profileDefault.sumDodge = true
 	profileDefault.sumParry = true
 	profileDefault.sumBlock = true
+	profileDefault.sumBlockValue = true
+	profileDefault.sumDefense = true
 	profileDefault.showSpellDmgFromInt = true
 	profileDefault.showHealingFromInt = true
 	profileDefault.showSpellDmgFromStr = true
@@ -420,7 +449,6 @@ elseif class == "PALADIN" then
 	profileDefault.sumIgnoreMail = false
 	profileDefault.sumIgnorePlate = false
 elseif class == "PRIEST" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingSpell = true
 	profileDefault.sumHP = true
 	profileDefault.sumMP = true
@@ -439,7 +467,6 @@ elseif class == "PRIEST" then
 	profileDefault.showHealingFromSpi = true
 	profileDefault.sumIgnoreCloth = false
 elseif class == "ROGUE" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
 	profileDefault.sumResilience = true
@@ -448,10 +475,10 @@ elseif class == "ROGUE" then
 	profileDefault.sumCrit = true
 	profileDefault.sumHaste = true
 	profileDefault.sumExpertise = true
+	profileDefault.sumArmorPenetration = true
 	profileDefault.showSpellCritFromInt = false
 	profileDefault.sumIgnoreLeather = false
 elseif class == "SHAMAN" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingSpell = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
@@ -473,7 +500,6 @@ elseif class == "SHAMAN" then
 	profileDefault.sumIgnoreLeather = false
 	profileDefault.sumIgnoreMail = false
 elseif class == "WARLOCK" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingSpell = true
 	profileDefault.sumHP = true
 	profileDefault.sumMP = true
@@ -490,7 +516,6 @@ elseif class == "WARLOCK" then
 	profileDefault.showSpellDmgFromSpi = true
 	profileDefault.sumIgnoreCloth = false
 elseif class == "WARRIOR" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
 	profileDefault.sumResilience = true
@@ -499,9 +524,12 @@ elseif class == "WARRIOR" then
 	profileDefault.sumCrit = true
 	profileDefault.sumHaste = true
 	profileDefault.sumExpertise = true
+	profileDefault.sumArmorPenetration = true
 	profileDefault.sumDodge = true
 	profileDefault.sumParry = true
 	profileDefault.sumBlock = true
+	profileDefault.sumBlockValue = true
+	profileDefault.sumDefense = true
 	profileDefault.showSpellCritFromInt = false
 	profileDefault.showAPFromArmor = true
 	if playerLevel < 40 then
@@ -509,7 +537,6 @@ elseif class == "WARRIOR" then
 	end
 	profileDefault.sumIgnorePlate = false
 elseif class == "DEATHKNIGHT" then
-	profileDefault.sumMastery = true
 	profileDefault.ratingPhysical = true
 	profileDefault.sumHP = true
 	profileDefault.sumResilience = true
@@ -518,8 +545,10 @@ elseif class == "DEATHKNIGHT" then
 	profileDefault.sumCrit = true
 	profileDefault.sumHaste = true
 	profileDefault.sumExpertise = true
+	profileDefault.sumArmorPenetration = true
 	profileDefault.sumDodge = true
 	profileDefault.sumParry = true
+	profileDefault.sumDefense = true
 	profileDefault.showSpellCritFromInt = false
 	profileDefault.showParryFromStr = true
 	profileDefault.showAPFromArmor = true
@@ -581,7 +610,7 @@ local function setGem(info, value)
 		clearCache()
 		-- Is option set by AceConfigCmd or AceConfigDialog?
 		--if not debugstack():find("AceConfigCmd") then
-			RatingBuster:Print(L["|cffffff7f%s|r is now set to |cffffff7f[%s]|r"]:format(info.option.name, link))
+		RatingBuster:Print(L["|cffffff7f%s|r is now set to |cffffff7f[%s]|r"]:format(info.option.name, link))
 		--end
 	elseif gemID == false then -- invalid input
 		RatingBuster:Print(L["Invalid input: %s. ItemID or ItemLink required."]:format(value))
@@ -652,7 +681,9 @@ local options = {
 					order = 4,
 					width = "double",
 					name = L["Enable Avoidance Diminishing Returns"],
-					desc = L["Dodge, Parry, Hit Avoidance values will be calculated using the avoidance deminishing return formula with your current stats"],
+					desc = L[
+							"Dodge, Parry, Hit Avoidance values will be calculated using the avoidance deminishing return formula with your current stats"
+							],
 					arg = "enableAvoidanceDiminishingReturns",
 					get = getProfileOption,
 					set = setProfileOptionAndClearCache,
@@ -751,6 +782,26 @@ local options = {
 					get = getProfileOption,
 					set = setProfileOptionAndClearCache,
 				},
+				def = {
+					type = 'toggle',
+					order = 5,
+					width = "double",
+					name = L["Defense Breakdown"],
+					desc = L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"],
+					arg = "defBreakDown",
+					get = getProfileOption,
+					set = setProfileOptionAndClearCache,
+				},
+				wpn = {
+					type = 'toggle',
+					order = 6,
+					width = "double",
+					name = L["Weapon Skill Breakdown"],
+					desc = L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"],
+					arg = "wpnBreakDown",
+					get = getProfileOption,
+					set = setProfileOptionAndClearCache,
+				},
 				exp = {
 					type = 'toggle',
 					order = 7,
@@ -789,7 +840,9 @@ local options = {
 							end,
 							set = function(info, r, g, b, a)
 								profileDB.textColor.r, profileDB.textColor.g, profileDB.textColor.b = r, g, b
-								profileDB.textColor.hex = "|cff"..string.format("%02x%02x%02x", profileDB.textColor.r * 255, profileDB.textColor.g * 255, profileDB.textColor.b * 255)
+								profileDB.textColor.hex = "|cff" ..
+										string.format("%02x%02x%02x", profileDB.textColor.r * 255, profileDB.textColor.g * 255,
+											profileDB.textColor.b * 255)
 								clearCache()
 							end,
 						},
@@ -803,12 +856,15 @@ local options = {
 								CloseMenus()
 								ColorPickerFrame.func = function()
 									profileDB.textColor.r, profileDB.textColor.g, profileDB.textColor.b = ColorPickerFrame:GetColorRGB();
-									profileDB.textColor.hex = "|cff"..string.format("%02x%02x%02x", profileDB.textColor.r * 255, profileDB.textColor.g * 255, profileDB.textColor.b * 255)
+									profileDB.textColor.hex = "|cff" ..
+											string.format("%02x%02x%02x", profileDB.textColor.r * 255, profileDB.textColor.g * 255,
+												profileDB.textColor.b * 255)
 									--clear cache
 									clearCache()
 								end
 								ColorPickerFrame:SetColorRGB(profileDB.textColor.r, profileDB.textColor.g, profileDB.textColor.b);
-								ColorPickerFrame.previousValues = {r = profileDB.textColor.r, g = profileDB.textColor.g, b = profileDB.textColor.b};
+								ColorPickerFrame.previousValues = { r = profileDB.textColor.r, g = profileDB.textColor.g,
+									b = profileDB.textColor.b };
 								ColorPickerFrame:Show()
 							end,
 						},
@@ -856,6 +912,34 @@ local options = {
 							name = L["Show Block Value"],
 							desc = L["Show Block Value from Strength"],
 							arg = "showBlockValueFromStr",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						--Ascension Custom
+						spellcrit = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Conviction"],
+							desc = L["Show Spell Crit from Strength"],
+							arg = "showConviction",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						hitrating = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Divine Strength"],
+							desc = L["Show Hit Rating from Strength"],
+							arg = "showDivineStrength",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						parry = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Iron Will"],
+							desc = L["Show Parry Rating from Strength"],
+							arg = "showIronWill",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
@@ -912,6 +996,43 @@ local options = {
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
+						--Ascension Custom
+						spellcrit = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Thundering Strikes"],
+							desc = L["Show Spell Crit from Agility"],
+							arg = "showThunderingStrikes",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						hitrating = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Shamanistic Focus"],
+							desc = L["Show Spell Hit from Agility"],
+							arg = "showShamanisticFocus",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						hitrating2 = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Combat Experience"],
+							desc = L["Show Spell Hit from Agility"],
+							arg = "showCombatExperience",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						dodge2 = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Natural Reaction"],
+							desc = L["Show Dodge from Natural Reaction"],
+							arg = "showNaturalReaction",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
 					},
 				},
 				sta = {
@@ -926,6 +1047,15 @@ local options = {
 							name = L["Show Health"],
 							desc = L["Show Health from Stamina"],
 							arg = "showHealthFromSta",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						ap = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Hunter vs. Wild"],
+							desc = L["Show Attack Power from Stamina"],
+							arg = "showHunterVSWild",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
@@ -999,6 +1129,33 @@ local options = {
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
+						spellcrit = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Improved Spirit Tap"],
+							desc = L["Show Crit Rating from Spirit"],
+							arg = "showSpiritTap",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						spellcrit2 = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Meditation"],
+							desc = L["Show Crit Rating from Spirit"],
+							arg = "showMeditation",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						spellcrit3 = {
+							type = 'toggle',
+							width = "full",
+							name = L["Show Molten Armor"],
+							desc = L["Show Crit Rating from Spirit"],
+							arg = "showMoltenArmor",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
 					},
 				},
 			},
@@ -1028,7 +1185,7 @@ local options = {
 					order = 2,
 					name = L["Display Style For Diff Value"],
 					desc = L["Display diff values in the main tooltip or only in compare tooltips"],
-					values = {comp = "comp", main = "main"},
+					values = { comp = "comp", main = "main" },
 					arg = "sumDiffStyle",
 				},
 				ignore = {
@@ -1052,11 +1209,11 @@ local options = {
 							name = L["Minimum Item Quality"],
 							desc = L["Show stat summary only for selected quality items and up"],
 							values = {
-								[0] = "|cff9d9d9d"..ITEM_QUALITY0_DESC.."|r",
-								[1] = "|cffffffff"..ITEM_QUALITY1_DESC.."|r",
-								[2] = "|cff1eff00"..ITEM_QUALITY2_DESC.."|r",
-								[3] = "|cff0070dd"..ITEM_QUALITY3_DESC.."|r",
-								[4] = "|cffa335ee"..ITEM_QUALITY4_DESC.."|r",
+								[0] = "|cff9d9d9d" .. ITEM_QUALITY0_DESC .. "|r",
+								[1] = "|cffffffff" .. ITEM_QUALITY1_DESC .. "|r",
+								[2] = "|cff1eff00" .. ITEM_QUALITY2_DESC .. "|r",
+								[3] = "|cff0070dd" .. ITEM_QUALITY3_DESC .. "|r",
+								[4] = "|cffa335ee" .. ITEM_QUALITY4_DESC .. "|r",
 							},
 							arg = "sumMinQuality",
 							disabled = function() return not profileDB.sumIgnoreUnused end,
@@ -1209,7 +1366,9 @@ local options = {
 					name = L["Sort StatSummary Alphabetically"],
 					order = 10,
 					width = "double",
-					desc = L["Enable to sort StatSummary alphabetically, disable to sort according to stat type(basic, physical, spell, tank)"],
+					desc = L[
+							"Enable to sort StatSummary alphabetically, disable to sort according to stat type(basic, physical, spell, tank)"
+							],
 					arg = "sumSortAlpha",
 					get = getProfileOption,
 					set = setProfileOptionAndClearCache,
@@ -1318,22 +1477,6 @@ local options = {
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
-						mastery = {
-							type = 'toggle',
-							name = L["Sum Mastery"],
-							desc = L["Mastery Summary"],
-							arg = "sumMastery",
-							get = getProfileOption,
-							set = setProfileOptionAndClearCache,
-						},
-						masteryrating = {
-							type = 'toggle',
-							name = L["Sum Mastery Rating"],
-							desc = L["Mastery Rating Summary"],
-							arg = "sumMasteryRating",
-							get = getProfileOption,
-							set = setProfileOptionAndClearCache,
-						},
 					},
 				},
 				physical = {
@@ -1369,7 +1512,7 @@ local options = {
 						hit = {
 							type = 'toggle',
 							name = L["Sum Hit Chance"],
-							desc = L["Hit Chance <- Hit Rating"],
+							desc = L["Hit Chance <- Hit Rating, Weapon Skill Rating"],
 							arg = "sumHit",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1385,7 +1528,7 @@ local options = {
 						rangedhit = {
 							type = 'toggle',
 							name = L["Sum Ranged Hit Chance"],
-							desc = L["Ranged Hit Chance <- Hit Rating, Ranged Hit Rating"],
+							desc = L["Ranged Hit Chance <- Hit Rating, Weapon Skill Rating, Ranged Hit Rating"],
 							arg = "sumRangedHit",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1401,7 +1544,7 @@ local options = {
 						crit = {
 							type = 'toggle',
 							name = L["Sum Crit Chance"],
-							desc = L["Crit Chance <- Crit Rating, Agility"],
+							desc = L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"],
 							arg = "sumCrit",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1417,7 +1560,7 @@ local options = {
 						rangedcrit = {
 							type = 'toggle',
 							name = L["Sum Ranged Crit Chance"],
-							desc = L["Ranged Crit Chance <- Crit Rating, Agility, Ranged Crit Rating"],
+							desc = L["Ranged Crit Chance <- Crit Rating, Agility, Weapon Skill Rating, Ranged Crit Rating"],
 							arg = "sumRangedCrit",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1465,7 +1608,7 @@ local options = {
 						neglectdodge = {
 							type = 'toggle',
 							name = L["Sum Dodge Neglect"],
-							desc = L["Dodge Neglect <- Expertise"],
+							desc = L["Dodge Neglect <- Expertise, Weapon Skill Rating"],
 							arg = "sumDodgeNeglect",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1473,8 +1616,24 @@ local options = {
 						neglectparry = {
 							type = 'toggle',
 							name = L["Sum Parry Neglect"],
-							desc = L["Parry Neglect <- Expertise"],
+							desc = L["Parry Neglect <- Expertise, Weapon Skill Rating"],
 							arg = "sumParryNeglect",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						neglectblock = {
+							type = 'toggle',
+							name = L["Sum Block Neglect"],
+							desc = L["Block Neglect <- Weapon Skill Rating"],
+							arg = "sumBlockNeglect",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						wpn = {
+							type = 'toggle',
+							name = L["Sum Weapon Skill"],
+							desc = L["Weapon Skill <- Weapon Skill Rating"],
+							arg = "sumWeaponSkill",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
@@ -1499,6 +1658,43 @@ local options = {
 							name = L["Sum Weapon Max Damage"],
 							desc = L["Weapon Max Damage Summary"],
 							arg = "sumWeaponMaxDamage",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						--[[
+						weapondps = {
+							type = 'toggle',
+							name = L["Sum Weapon DPS"],
+							desc = L["Weapon DPS Summary"],
+							get = function() return profileDB.sumWeaponDPS end,
+							set = function(v)
+								profileDB.sumWeaponDPS = v
+								-- clear cache
+								clearCache()
+							end,
+						},
+						--]]
+						ignorearmor = {
+							type = 'toggle',
+							name = L["Sum Ignore Armor"],
+							desc = L["Ignore Armor Summary"],
+							arg = "sumIgnoreArmor",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						arp = {
+							type = 'toggle',
+							name = L["Sum Armor Penetration"],
+							desc = L["Armor Penetration Summary"],
+							arg = "sumArmorPenetration",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						arprating = {
+							type = 'toggle',
+							name = L["Sum Armor Penetration Rating"],
+							desc = L["Armor Penetration Rating Summary"],
+							arg = "sumArmorPenetrationRating",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
@@ -1641,15 +1837,23 @@ local options = {
 						armor = {
 							type = 'toggle',
 							name = L["Sum Armor"],
-							desc = L["Armor <- Armor from items and bonuses"],
+							desc = L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"],
 							arg = "sumArmor",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						def = {
+							type = 'toggle',
+							name = L["Sum Defense"],
+							desc = L["Defense <- Defense Rating"],
+							arg = "sumDefense",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
 						dodge = {
 							type = 'toggle',
 							name = L["Sum Dodge Chance"],
-							desc = L["Dodge Chance <- Dodge Rating, Agility"],
+							desc = L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"],
 							arg = "sumDodge",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1665,7 +1869,7 @@ local options = {
 						parry = {
 							type = 'toggle',
 							name = L["Sum Parry Chance"],
-							desc = L["Parry Chance <- Parry Rating"],
+							desc = L["Parry Chance <- Parry Rating, Defense Rating"],
 							arg = "sumParry",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1681,7 +1885,7 @@ local options = {
 						block = {
 							type = 'toggle',
 							name = L["Sum Block Chance"],
-							desc = L["Block Chance <- Block Rating"],
+							desc = L["Block Chance <- Block Rating, Defense Rating"],
 							arg = "sumBlock",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
@@ -1691,6 +1895,30 @@ local options = {
 							name = L["Sum Block Rating"],
 							desc = L["Block Rating Summary"],
 							arg = "sumBlockRating",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						blockvalue = {
+							type = 'toggle',
+							name = L["Sum Block Value"],
+							desc = L["Block Value <- Block Value, Strength"],
+							arg = "sumBlockValue",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						avoidhit = {
+							type = 'toggle',
+							name = L["Sum Hit Avoidance"],
+							desc = L["Hit Avoidance <- Defense Rating"],
+							arg = "sumHitAvoid",
+							get = getProfileOption,
+							set = setProfileOptionAndClearCache,
+						},
+						avoidcrit = {
+							type = 'toggle',
+							name = L["Sum Crit Avoidance"],
+							desc = L["Crit Avoidance <- Defense Rating, Resilience"],
+							arg = "sumCritAvoid",
 							get = getProfileOption,
 							set = setProfileOptionAndClearCache,
 						},
@@ -2003,7 +2231,9 @@ if TankPoints and (tonumber(strsub(TankPoints.version, 1, 3)) >= 2.6) then
 	options.args.sum.args.tank.args.tr = {
 		type = 'toggle',
 		name = L["Sum Total Reduction"],
-		desc = L["Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"],
+		desc = L[
+				"Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"
+				],
 		arg = "sumTotalReduction",
 		get = getProfileOption,
 		set = setProfileOptionAndClearCache,
@@ -2023,385 +2253,327 @@ end
 
 -- Class specific options
 if class == "DRUID" then
-  if GetSpellInfo(47180) then
-    options.args.stat.args.agi.args.heal = { -- Nurturing Instinct (Rank 2) - 2,14
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(47180)..")",						-- ["Nurturing Instinct"]
-      desc = L["Show Healing from Agility"].." ("..GetSpellInfo(47180)..")",			-- ["Nurturing Instinct"]
-      arg = "showHealingFromAgi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(33591) then
-    options.args.stat.args.int.args.dmg = { -- Lunar Guidance (Rank 3) - 1,12
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(33591)..")",					-- ["Lunar Guidance"]
-      desc = L["Show Spell Damage from Intellect"].." ("..GetSpellInfo(33591)..")",	-- ["Lunar Guidance"]
-      arg = "showSpellDmgFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(33591) then
-    options.args.stat.args.int.args.heal = { -- Lunar Guidance (Rank 3) - 1,12
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(33591)..")",
-      desc = L["Show Healing from Intellect"].." ("..GetSpellInfo(33591)..")",
-      arg = "showHealingFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(35359) then
-    options.args.stat.args.spi.args.mp5 = { -- Intensity (Rank 3) - 3,6
-      type = 'toggle',
-      width = "full",
-      name = L["Show Mana Regen"].." ("..GetSpellInfo(35359)..")",
-      desc = L["Show Mana Regen while casting from Spirit"].." ("..GetSpellInfo(35359)..")",
-      arg = "showMP5FromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(48384) then
-    options.args.stat.args.spi.args.dmg = { -- Improved Moonkin Form (Rank 3) - 1,19
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(48384)..")",                
-      desc = L["Show Spell Damage from Spirit"].." ("..GetSpellInfo(48384)..")",    
-      arg = "showSpellDmgFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(48537) then
-    options.args.stat.args.spi.args.heal = { -- Improved Tree of Life (Rank 3) - 3,24
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(48537)..")",                
-      desc = L["Show Healing from Spirit"].." ("..GetSpellInfo(48537)..")",    
-      arg = "showHealingFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.agi.args.heal = { -- Nurturing Instinct (Rank 2) - 2,14
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(47180) .. ")", -- ["Nurturing Instinct"]
+		desc = L["Show Healing from Agility"] .. " (" .. GetSpellInfo(47180) .. ")", -- ["Nurturing Instinct"]
+		arg = "showHealingFromAgi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.dmg = { -- Lunar Guidance (Rank 3) - 1,12
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(33591) .. ")", -- ["Lunar Guidance"]
+		desc = L["Show Spell Damage from Intellect"] .. " (" .. GetSpellInfo(33591) .. ")", -- ["Lunar Guidance"]
+		arg = "showSpellDmgFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.heal = { -- Lunar Guidance (Rank 3) - 1,12
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(33591) .. ")",
+		desc = L["Show Healing from Intellect"] .. " (" .. GetSpellInfo(33591) .. ")",
+		arg = "showHealingFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.mp5 = { -- Intensity (Rank 3) - 3,6
+		type = 'toggle',
+		width = "full",
+		name = L["Show Mana Regen"] .. " (" .. GetSpellInfo(35359) .. ")",
+		desc = L["Show Mana Regen while casting from Spirit"] .. " (" .. GetSpellInfo(35359) .. ")",
+		arg = "showMP5FromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.dmg = { -- Improved Moonkin Form (Rank 3) - 1,19
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(48384) .. ")",
+		desc = L["Show Spell Damage from Spirit"] .. " (" .. GetSpellInfo(48384) .. ")",
+		arg = "showSpellDmgFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.heal = { -- Improved Tree of Life (Rank 3) - 3,24
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(48537) .. ")",
+		desc = L["Show Healing from Spirit"] .. " (" .. GetSpellInfo(48537) .. ")",
+		arg = "showHealingFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "HUNTER" then
-  if GetSpellInfo(34484) then
-    options.args.stat.args.int.args.rap = { -- Careful Aim
-      type = 'toggle',
-      width = "full",
-      name = L["Show Ranged Attack Power"].." ("..GetSpellInfo(34484)..")",
-      desc = L["Show Ranged Attack Power from Intellect"].." ("..GetSpellInfo(34484)..")",
-      arg = "showRAPFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(56341) then
-    options.args.stat.args.sta.args.ap = { -- Hunter: Hunter vs. Wild
-      type = 'toggle',
-      width = "full",
-      name = L["Show Attack Power"].." ("..GetSpellInfo(56341)..")",
-      desc = L["Show Attack Power from Stamina"].." ("..GetSpellInfo(56341)..")",
-      arg = "showAPFromSta",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.int.args.rap = { -- Careful Aim
+		type = 'toggle',
+		width = "full",
+		name = L["Show Ranged Attack Power"] .. " (" .. GetSpellInfo(34484) .. ")",
+		desc = L["Show Ranged Attack Power from Intellect"] .. " (" .. GetSpellInfo(34484) .. ")",
+		arg = "showRAPFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.sta.args.ap = { -- Hunter: Hunter vs. Wild
+		type = 'toggle',
+		width = "full",
+		name = L["Show Attack Power"] .. " (" .. GetSpellInfo(56341) .. ")",
+		desc = L["Show Attack Power from Stamina"] .. " (" .. GetSpellInfo(56341) .. ")",
+		arg = "showAPFromSta",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "MAGE" then
-  if GetSpellInfo(31588) then
-    options.args.stat.args.int.args.dmg = { -- Mind Mastery (Rank 5) - 1,22
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(31588)..")",
-      desc = L["Show Spell Damage from Intellect"].." ("..GetSpellInfo(31588)..")",
-      arg = "showSpellDmgFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(28574) then
-    options.args.stat.args.int.args.armor = { -- Arcane Fortitude - 1,9
-      type = 'toggle',
-      width = "full",
-      name = L["Show Armor"].." ("..GetSpellInfo(28574)..")",
-      desc = L["Show Armor from Intellect"].." ("..GetSpellInfo(28574)..")",
-      arg = "showArmorFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(18464) then
-    options.args.stat.args.spi.args.mp5 = { -- Arcane Meditation (Rank 3) - 1,12
-      type = 'toggle',
-      width = "full",
-      name = L["Show Mana Regen"].." ("..GetSpellInfo(18464)..")",
-      desc = L["Show Mana Regen while casting from Spirit"].." ("..GetSpellInfo(18464)..")",
-      arg = "showMP5FromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(30482) then
-    options.args.stat.args.spi.args.spellcrit = { -- Molten Armor
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Crit"].." ("..GetSpellInfo(30482)..")",
-      desc = L["Show Spell Crit chance from Spirit"].." ("..GetSpellInfo(30482)..")",
-      arg = "showSpellCritFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.int.args.dmg = { -- Mind Mastery (Rank 5) - 1,22
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(31588) .. ")",
+		desc = L["Show Spell Damage from Intellect"] .. " (" .. GetSpellInfo(31588) .. ")",
+		arg = "showSpellDmgFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.armor = { -- Arcane Fortitude - 1,9
+		type = 'toggle',
+		width = "full",
+		name = L["Show Armor"] .. " (" .. GetSpellInfo(28574) .. ")",
+		desc = L["Show Armor from Intellect"] .. " (" .. GetSpellInfo(28574) .. ")",
+		arg = "showArmorFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.mp5 = { -- Arcane Meditation (Rank 3) - 1,12
+		type = 'toggle',
+		width = "full",
+		name = L["Show Mana Regen"] .. " (" .. GetSpellInfo(18464) .. ")",
+		desc = L["Show Mana Regen while casting from Spirit"] .. " (" .. GetSpellInfo(18464) .. ")",
+		arg = "showMP5FromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.spellcrit = { -- Molten Armor
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Crit"] .. " (" .. GetSpellInfo(30482) .. ")",
+		desc = L["Show Spell Crit chance from Spirit"] .. " (" .. GetSpellInfo(30482) .. ")",
+		arg = "showSpellCritFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "PALADIN" then
-  if GetSpellInfo(31841) then
-    options.args.stat.args.int.args.dmg = { -- Paladin: Holy Guidance (Rank 5) - 1,19
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(31841)..")",
-      desc = L["Show Spell Damage from Intellect"].." ("..GetSpellInfo(31841)..")",
-      arg = "showSpellDmgFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(31841) then
-    options.args.stat.args.int.args.heal = { -- Paladin: Holy Guidance (Rank 5) - 1,19
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(31841)..")",
-      desc = L["Show Healing from Intellect"].." ("..GetSpellInfo(31841)..")",
-      arg = "showHealingFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(53501) and GetSpellInfo(53592) then
-    options.args.stat.args.str.args.dmg = { -- Paladin: Sheath of Light, Touched by the Light
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(53501)..", "..GetSpellInfo(53592)..")",
-      desc = L["Show Spell Damage from Strength"].." ("..GetSpellInfo(53501)..", "..GetSpellInfo(53592)..")",
-      arg = "showSpellDmgFromStr",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(53501) and GetSpellInfo(53592) then
-    options.args.stat.args.str.args.heal = { -- Paladin: Sheath of Light, Touched by the Light
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(53501)..", "..GetSpellInfo(53592)..")",
-      desc = L["Show Healing from Strength"].." ("..GetSpellInfo(53501)..", "..GetSpellInfo(53592)..")",
-      arg = "showHealingFromStr",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.int.args.dmg = { -- Paladin: Holy Guidance (Rank 5) - 1,19
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(31841) .. ")",
+		desc = L["Show Spell Damage from Intellect"] .. " (" .. GetSpellInfo(31841) .. ")",
+		arg = "showSpellDmgFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.heal = { -- Paladin: Holy Guidance (Rank 5) - 1,19
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(31841) .. ")",
+		desc = L["Show Healing from Intellect"] .. " (" .. GetSpellInfo(31841) .. ")",
+		arg = "showHealingFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.str.args.dmg = { -- Paladin: Sheath of Light, Touched by the Light
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(53501) .. ", " .. GetSpellInfo(53592) .. ")",
+		desc = L["Show Spell Damage from Strength"] .. " (" .. GetSpellInfo(53501) .. ", " .. GetSpellInfo(53592) .. ")",
+		arg = "showSpellDmgFromStr",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.str.args.heal = { -- Paladin: Sheath of Light, Touched by the Light
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(53501) .. ", " .. GetSpellInfo(53592) .. ")",
+		desc = L["Show Healing from Strength"] .. " (" .. GetSpellInfo(53501) .. ", " .. GetSpellInfo(53592) .. ")",
+		arg = "showHealingFromStr",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "PRIEST" then
-  if GetSpellInfo(38346) then
-    options.args.stat.args.spi.args.mp5 = { -- Meditation (Rank 3) - 1,9
-      type = 'toggle',
-      width = "full",
-      name = L["Show Mana Regen"].." ("..GetSpellInfo(38346)..")",
-      desc = L["Show Mana Regen while casting from Spirit"].." ("..GetSpellInfo(38346)..")",
-      arg = "showMP5FromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(15031) and GetSpellInfo(47573) then
-    options.args.stat.args.spi.args.dmg = { -- Spiritual Guidance (Rank 5) - 2,14, Twisted Faith - 3,26
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(15031)..", "..GetSpellInfo(47573)..")",
-      desc = L["Show Spell Damage from Spirit"].." ("..GetSpellInfo(15031)..", "..GetSpellInfo(47573)..")",
-      arg = "showSpellDmgFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(15031) and GetSpellInfo(47573) then
-    options.args.stat.args.spi.args.heal = { -- Spiritual Guidance (Rank 5) - 2,14, Twisted Faith - 3,26
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(15031)..", "..GetSpellInfo(47573)..")",
-      desc = L["Show Healing from Spirit"].." ("..GetSpellInfo(15031)..", "..GetSpellInfo(47573)..")",
-      arg = "showHealingFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.spi.args.mp5 = { -- Meditation (Rank 3) - 1,9
+		type = 'toggle',
+		width = "full",
+		name = L["Show Mana Regen"] .. " (" .. GetSpellInfo(38346) .. ")",
+		desc = L["Show Mana Regen while casting from Spirit"] .. " (" .. GetSpellInfo(38346) .. ")",
+		arg = "showMP5FromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.dmg = { -- Spiritual Guidance (Rank 5) - 2,14, Twisted Faith - 3,26
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(15031) .. ", " .. GetSpellInfo(47573) .. ")",
+		desc = L["Show Spell Damage from Spirit"] .. " (" .. GetSpellInfo(15031) .. ", " .. GetSpellInfo(47573) .. ")",
+		arg = "showSpellDmgFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.heal = { -- Spiritual Guidance (Rank 5) - 2,14, Twisted Faith - 3,26
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(15031) .. ", " .. GetSpellInfo(47573) .. ")",
+		desc = L["Show Healing from Spirit"] .. " (" .. GetSpellInfo(15031) .. ", " .. GetSpellInfo(47573) .. ")",
+		arg = "showHealingFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "ROGUE" then
 elseif class == "SHAMAN" then
-  if GetSpellInfo(30814) then
-    options.args.stat.args.str.args.dmg = { -- Mental Quickness (Rank 3) - 2,15
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(30814)..")",
-      desc = L["Show Spell Damage from Strength"].." ("..GetSpellInfo(30814)..")",
-      arg = "showSpellDmgFromStr",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(30814) then
-    options.args.stat.args.str.args.heal = { -- Mental Quickness (Rank 3) - 2,15
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(30814)..")",
-      desc = L["Show Healing from Strength"].." ("..GetSpellInfo(30814)..")",
-      arg = "showHealingFromStr",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(30869) then
-    options.args.stat.args.int.args.dmg = { -- Nature's Blessing (Rank 3) - 3,18
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(30869)..")",
-      desc = L["Show Spell Damage from Intellect"].." ("..GetSpellInfo(30869)..")",
-      arg = "showSpellDmgFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(30869) then
-    options.args.stat.args.int.args.heal = { -- Nature's Blessing (Rank 3) - 3,18
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(30869)..")",
-      desc = L["Show Healing from Intellect"].." ("..GetSpellInfo(30869)..")",
-      arg = "showHealingFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(51885) then
-    options.args.stat.args.int.args.ap = { -- Shaman: Mental Dexterity
-      type = 'toggle',
-      width = "full",
-      name = L["Show Attack Power"].." ("..GetSpellInfo(51885)..")",
-      desc = L["Show Attack Power from Intellect"].." ("..GetSpellInfo(51885)..")",
-      arg = "showAPFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.str.args.dmg = { -- Mental Quickness (Rank 3) - 2,15
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(30814) .. ")",
+		desc = L["Show Spell Damage from Strength"] .. " (" .. GetSpellInfo(30814) .. ")",
+		arg = "showSpellDmgFromStr",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.str.args.heal = { -- Mental Quickness (Rank 3) - 2,15
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(30814) .. ")",
+		desc = L["Show Healing from Strength"] .. " (" .. GetSpellInfo(30814) .. ")",
+		arg = "showHealingFromStr",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.dmg = { -- Nature's Blessing (Rank 3) - 3,18
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(30869) .. ")",
+		desc = L["Show Spell Damage from Intellect"] .. " (" .. GetSpellInfo(30869) .. ")",
+		arg = "showSpellDmgFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.heal = { -- Nature's Blessing (Rank 3) - 3,18
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(30869) .. ")",
+		desc = L["Show Healing from Intellect"] .. " (" .. GetSpellInfo(30869) .. ")",
+		arg = "showHealingFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.ap = { -- Shaman: Mental Dexterity
+		type = 'toggle',
+		width = "full",
+		name = L["Show Attack Power"] .. " (" .. GetSpellInfo(51885) .. ")",
+		desc = L["Show Attack Power from Intellect"] .. " (" .. GetSpellInfo(51885) .. ")",
+		arg = "showAPFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "WARLOCK" then
-  if GetSpellInfo(35693) then
-    options.args.stat.args.sta.args.dmg = { -- Demonic Knowledge (Rank 3) - 2,20 - UnitExists("pet")
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(35693)..")",
-      desc = L["Show Spell Damage from Stamina"].." ("..GetSpellInfo(35693)..")",
-      arg = "showSpellDmgFromSta",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(35693) then
-    options.args.stat.args.int.args.dmg = { -- Demonic Knowledge (Rank 3) - 2,20 - UnitExists("pet")
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(35693)..")",
-      desc = L["Show Spell Damage from Intellect"].." ("..GetSpellInfo(35693)..")",
-      arg = "showSpellDmgFromInt",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(28176) then
-    options.args.stat.args.spi.args.dmg = { -- Warlock: Fel Armor
-      type = 'toggle',
-      width = "full",
-      name = L["Show Spell Damage"].." ("..GetSpellInfo(28176)..")",
-      desc = L["Show Spell Damage from Spirit"].." ("..GetSpellInfo(28176)..")",
-      arg = "showSpellDmgFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  if GetSpellInfo(28176) then
-    options.args.stat.args.spi.args.heal = { -- Warlock: Fel Armor
-      type = 'toggle',
-      width = "full",
-      name = L["Show Healing"].." ("..GetSpellInfo(28176)..")",
-      desc = L["Show Healing from Spirit"].." ("..GetSpellInfo(28176)..")",
-      arg = "showHealingFromSpi",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
+	options.args.stat.args.sta.args.dmg = { -- Demonic Knowledge (Rank 3) - 2,20 - UnitExists("pet")
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(35693) .. ")",
+		desc = L["Show Spell Damage from Stamina"] .. " (" .. GetSpellInfo(35693) .. ")",
+		arg = "showSpellDmgFromSta",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.int.args.dmg = { -- Demonic Knowledge (Rank 3) - 2,20 - UnitExists("pet")
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(35693) .. ")",
+		desc = L["Show Spell Damage from Intellect"] .. " (" .. GetSpellInfo(35693) .. ")",
+		arg = "showSpellDmgFromInt",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.dmg = { -- Warlock: Fel Armor
+		type = 'toggle',
+		width = "full",
+		name = L["Show Spell Damage"] .. " (" .. GetSpellInfo(28176) .. ")",
+		desc = L["Show Spell Damage from Spirit"] .. " (" .. GetSpellInfo(28176) .. ")",
+		arg = "showSpellDmgFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.spi.args.heal = { -- Warlock: Fel Armor
+		type = 'toggle',
+		width = "full",
+		name = L["Show Healing"] .. " (" .. GetSpellInfo(28176) .. ")",
+		desc = L["Show Healing from Spirit"] .. " (" .. GetSpellInfo(28176) .. ")",
+		arg = "showHealingFromSpi",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
 elseif class == "WARRIOR" then
-  options.args.stat.args.armor = { -- Armored to the Teeth (Rank 3) - 2,1
-    type = 'group',
-    order = 7,
-    name = L["Armor"],
-    desc = L["Changes the display of Armor"],
-    args = {
-      ap = {
-        type = 'toggle',
-        width = "full",
-        name = L["Show Attack Power"],
-        desc = L["Show Attack Power from Armor"],
-        arg = "showAPFromArmor",
-        get = getProfileOption,
-        set = setProfileOptionAndClearCache,
-      },
-    },
-  }
+	options.args.stat.args.armor = { -- Armored to the Teeth (Rank 3) - 2,1
+		type = 'group',
+		order = 7,
+		name = L["Armor"],
+		desc = L["Changes the display of Armor"],
+		args = {
+			ap = {
+				type = 'toggle',
+				width = "full",
+				name = L["Show Attack Power"],
+				desc = L["Show Attack Power from Armor"],
+				arg = "showAPFromArmor",
+				get = getProfileOption,
+				set = setProfileOptionAndClearCache,
+			},
+		},
+	}
 elseif class == "DEATHKNIGHT" then
-  if GetSpellInfo(49410) then
-    options.args.stat.args.str.args.parry = { -- Death Knight: Forceful Deflection - Passive
-      type = 'toggle',
-      width = "full",
-      name = L["Show Parry"].." ("..GetSpellInfo(49410)..")",
-      desc = L["Show Parry from Strength"].." ("..GetSpellInfo(49410)..")",
-      arg = "showParryFromStr",
-      get = getProfileOption,
-      set = setProfileOptionAndClearCache,
-    }
-  end
-  options.args.stat.args.armor = { -- Bladed Armor (Rank 5) - 1,4
-    type = 'group',
-    order = 7,
-    name = L["Armor"],
-    desc = L["Changes the display of Armor"],
-    args = {
-      ap = {
-        type = 'toggle',
-        width = "full",
-        name = L["Show Attack Power"],
-        desc = L["Show Attack Power from Armor"],
-        arg = "showAPFromArmor",
-        get = getProfileOption,
-        set = setProfileOptionAndClearCache,
-      },
-    },
-  }
+	options.args.stat.args.str.args.parry = { -- Death Knight: Forceful Deflection - Passive
+		type = 'toggle',
+		width = "full",
+		name = L["Show Parry"] .. " (" .. GetSpellInfo(49410) .. ")",
+		desc = L["Show Parry from Strength"] .. " (" .. GetSpellInfo(49410) .. ")",
+		arg = "showParryFromStr",
+		get = getProfileOption,
+		set = setProfileOptionAndClearCache,
+	}
+	options.args.stat.args.armor = { -- Bladed Armor (Rank 5) - 1,4
+		type = 'group',
+		order = 7,
+		name = L["Armor"],
+		desc = L["Changes the display of Armor"],
+		args = {
+			ap = {
+				type = 'toggle',
+				width = "full",
+				name = L["Show Attack Power"],
+				desc = L["Show Attack Power from Armor"],
+				arg = "showAPFromArmor",
+				get = getProfileOption,
+				set = setProfileOptionAndClearCache,
+			},
+		},
+	}
 end
 
 function RatingBuster:SetupOptions()
 	-- Inject profile options
 	options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	options.args.profile.order = -2
-	
+
 	-- Add dual-spec support
 	local LibDualSpec = LibStub("LibDualSpec-1.0", true)
 	if LibDualSpec then
 		LibDualSpec:EnhanceDatabase(self.db, "RatingBuster")
 		LibDualSpec:EnhanceOptions(options.args.profile, self.db)
 	end
-	
+
 	-- Register options table
-	AceConfig:RegisterOptionsTable("RatingBuster", options, {"rb", "rabu", "ratingbuster"})
-	
+	AceConfig:RegisterOptionsTable("RatingBuster", options, { "rb", "rabu", "ratingbuster" })
+
 	-- Setup Blizzard option frames
 	self.optionsFrames = {}
 	-- The ordering here matters, it determines the order in the Blizzard Interface Options
@@ -2432,7 +2604,7 @@ local function copyTable(to, from)
 	else
 		to = {}
 	end
-	for k,v in pairs(from) do
+	for k, v in pairs(from) do
 		if type(k) == "table" then
 			k = copyTable({}, k)
 		end
@@ -2462,10 +2634,11 @@ end
 -- API --
 ---------
 function RatingBuster:GetStatMod(stat, school, talentGroup)
-  return StatLogic:GetStatMod(stat, school, talentGroup)
+	return StatLogic:GetStatMod(stat, school, talentGroup)
 end
+
 function RatingBuster:ClearCache()
-  clearCache()
+	clearCache()
 end
 
 ---------------------
@@ -2492,18 +2665,15 @@ function RatingBuster:OnInitialize()
 	self.db.RegisterCallback(self, "OnProfileChanged", "OnProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileCopied", "OnProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileReset", "OnProfileChanged")
-	
+
 	profileDB = self.db.profile
 
 	self:SetupOptions()
-	
+
 	-- Hook ShoppingTooltips to enable options to Hide Blizzard Item Comparisons
 	HookSetHyperlinkCompareItem(ShoppingTooltip1)
 	HookSetHyperlinkCompareItem(ShoppingTooltip2)
 	HookSetHyperlinkCompareItem(ShoppingTooltip3)
-	HookSetHyperlinkCompareItem(ItemRefShoppingTooltip1)
-	HookSetHyperlinkCompareItem(ItemRefShoppingTooltip2)
-	HookSetHyperlinkCompareItem(ItemRefShoppingTooltip3)
 end
 
 -- OnEnable() called at PLAYER_LOGIN
@@ -2538,15 +2708,16 @@ function RatingBuster:UNIT_AURA(event, unit)
 	if unit ~= "player" then return end
 	clearCache()
 end
+
 --local tooltips = {}
 function RatingBuster:MODIFIER_STATE_CHANGED(event, key, state)
 	-- self:Print("MODIFIER_STATE_CHANGED")
 	-- for tooltip, link in pairs(tooltips) do
-		-- if tooltip:IsShown() and not strfind(tooltip:GetName(), "ompar") and not strfind(tooltip:GetName(), "Shopping") then
-			-- tooltip:ClearLines()
-			-- ShowUIPanel(tooltip)
-			-- tooltip:SetHyperlink(link)
-		-- end
+	-- if tooltip:IsShown() and not strfind(tooltip:GetName(), "ompar") and not strfind(tooltip:GetName(), "Shopping") then
+	-- tooltip:ClearLines()
+	-- ShowUIPanel(tooltip)
+	-- tooltip:SetHyperlink(link)
+	-- end
 	-- end
 	clearCache()
 end
@@ -2628,7 +2799,8 @@ function RatingBuster.ProcessTooltip(tooltip, name, link, ...)
 			blue = profileDB.sumGemBlue.gemID
 			meta = profileDB.sumGemMeta.gemID
 		end
-		local _, mainlink, difflink1, difflink2 = StatLogic:GetDiffID(tooltip, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue, meta, profileDB.sumIgnorePris)
+		local _, mainlink, difflink1, difflink2 = StatLogic:GetDiffID(tooltip, profileDB.sumIgnoreEnchant,
+			profileDB.sumIgnoreGems, red, yellow, blue, meta, profileDB.sumIgnorePris)
 		StatLogic:GetSum(difflink1, equippedSum)
 		equippedSum["STR"] = (equippedSum["STR"] or 0) * RatingBuster:GetStatMod("MOD_STR")
 		equippedSum["AGI"] = (equippedSum["AGI"] or 0) * RatingBuster:GetStatMod("MOD_AGI")
@@ -2646,7 +2818,7 @@ function RatingBuster.ProcessTooltip(tooltip, name, link, ...)
 		processedParry = 0
 		processedMissed = 0
 	end
-	
+
 	if isModifierKeyDown[profileDB.sumGem2Toggle] and isModifierKeyDown[profileDB.sumGem2Toggle]() then
 		EmptySocketLookup[EMPTY_SOCKET_RED] = "sumGemRed2"
 		EmptySocketLookup[EMPTY_SOCKET_YELLOW] = "sumGemYellow2"
@@ -2664,13 +2836,13 @@ function RatingBuster.ProcessTooltip(tooltip, name, link, ...)
 		EmptySocketLookup[EMPTY_SOCKET_META] = "sumGemMeta"
 	end
 	-- Loop through tooltip lines starting at line 2
-	local tipTextLeft = tooltip:GetName().."TextLeft"
+	local tipTextLeft = tooltip:GetName() .. "TextLeft"
 	for i = 2, tooltip:NumLines() do
-		local fontString = _G[tipTextLeft..i]
+		local fontString = _G[tipTextLeft .. i]
 		local text = fontString:GetText()
 		if text then
 			-- Get data from cache if available
-			local cacheID = text..calcLevel
+			local cacheID = text .. calcLevel
 			local cacheText = cache[cacheID]
 			if cacheText then
 				if cacheText ~= text then
@@ -2714,13 +2886,13 @@ function RatingBuster.ProcessTooltip(tooltip, name, link, ...)
 				local _, _, id = strfind(link, "item:(%d+)")
 				local newLine = ""
 				if level and profileDB.showItemLevel then
-					newLine = newLine..L["ItemLevel: "]..level
+					newLine = newLine .. L["ItemLevel: "] .. level
 				end
 				if id and profileDB.showItemID then
 					if newLine ~= "" then
-						newLine = newLine..", "
+						newLine = newLine .. ", "
 					end
-					newLine = newLine..L["ItemID: "]..id
+					newLine = newLine .. L["ItemID: "] .. id
 				end
 				if newLine ~= "" then
 					cache[link] = newLine
@@ -2799,8 +2971,8 @@ end
 function RatingBuster:SplitDoJoin(text, separatorTable, tooltip)
 	if type(separatorTable) == "table" and table.maxn(separatorTable) > 0 then
 		local sep = tremove(separatorTable, 1)
-		text =  gsub(text, sep, "@")
-		text = {strsplit("@", text)}
+		text = gsub(text, sep, "@")
+		text = { strsplit("@", text) }
 		local processedText = {}
 		local tempTable = {}
 		for _, t in ipairs(text) do
@@ -2815,7 +2987,6 @@ function RatingBuster:SplitDoJoin(text, separatorTable, tooltip)
 		return self:ProcessText(text, tooltip)
 	end
 end
-
 
 function RatingBuster:ProcessText(text, tooltip)
 	--self:Print(text)
@@ -2835,7 +3006,8 @@ function RatingBuster:ProcessText(text, tooltip)
 				if (not partialtext and strfind(lowerText, stat.pattern)) or (partialtext and strfind(partialtext, stat.pattern)) then
 					value = tonumber(value)
 					local infoString = ""
-					if type(stat.id) == "number" and stat.id >= 1 and stat.id <= 26 and isModifierKeyDown[profileDB.showRatings] and isModifierKeyDown[profileDB.showRatings]() then
+					if type(stat.id) == "number" and stat.id >= 1 and stat.id <= 25 and isModifierKeyDown[profileDB.showRatings] and
+							isModifierKeyDown[profileDB.showRatings]() then
 						--------------------
 						-- Combat Ratings --
 						--------------------
@@ -2844,12 +3016,33 @@ function RatingBuster:ProcessText(text, tooltip)
 						--self:Print(reversedAmount..", "..amount..", "..v[2]..", "..RatingBuster.targetLevel)-- debug
 						-- If rating is resilience, add a minus sign
 						-- (d0.12%, p0.12%, b0.12%, m0.12%, c-0.12%)
-						if strID == "DODGE" and profileDB.enableAvoidanceDiminishingReturns then
-							infoString = format("%+.2f%%", StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge + effect) - StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge))
+						if strID == "DEFENSE" and profileDB.defBreakDown then
+							effect = effect * 0.04
+							processedDodge = processedDodge + effect
+							processedMissed = processedMissed + effect
+							local numStats = 5
+							if GetParryChance() == 0 then
+								numStats = numStats - 1
+							else
+								processedParry = processedParry + effect
+							end
+							if GetBlockChance() == 0 then
+								numStats = numStats - 1
+							end
+							infoString = format("%+.2f%% x" .. numStats, effect)
+						elseif strID == "DODGE" and profileDB.enableAvoidanceDiminishingReturns then
+							infoString = format("%+.2f%%",
+								StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge + effect) -
+								StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge))
 							processedDodge = processedDodge + effect
 						elseif strID == "PARRY" and profileDB.enableAvoidanceDiminishingReturns then
-							infoString = format("%+.2f%%", StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry + effect) - StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry))
+							infoString = format("%+.2f%%",
+								StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry + effect) -
+								StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry))
 							processedParry = processedParry + effect
+						elseif strID == "WEAPON_SKILL" and profileDB.wpnBreakDown then
+							effect = effect * 0.04
+							infoString = format("%+.2f%% x5", effect)
 						elseif strID == "EXPERTISE" and profileDB.expBreakDown then
 							effect = effect * -0.25
 							if profileDB.detailedConversionText then
@@ -2860,36 +3053,39 @@ function RatingBuster:ProcessText(text, tooltip)
 						elseif stat.id >= 15 and stat.id <= 17 then -- Resilience
 							effect = effect * -1
 							if profileDB.detailedConversionText then
-								infoString = gsub(L["$value to be Crit"], "$value", format("%+.2f%%%%", effect))..", "..gsub(L["$value Crit Dmg Taken"], "$value", format("%+.2f%%%%", effect * 2))..", "..gsub(L["$value DOT Dmg Taken"], "$value", format("%+.2f%%%%", effect))
+								infoString = gsub(L["$value to be Crit"], "$value", format("%+.2f%%%%", effect)) ..
+										", " ..
+										gsub(L["$value Crit Dmg Taken"], "$value", format("%+.2f%%%%", effect * 2)) ..
+										", " .. gsub(L["$value DOT Dmg Taken"], "$value", format("%+.2f%%%%", effect))
 							else
 								infoString = format("%+.2f%%", effect)
 							end
-						-- CR_HIT_MELEE = 6
-						-- CR_CRIT_MELEE = 9
-						-- CR_HASTE_MELEE = 18
-						-- Crit and Haste conversions are the same for melee and haste, only hit is different
+							-- CR_HIT_MELEE = 6
+							-- CR_CRIT_MELEE = 9
+							-- CR_HASTE_MELEE = 18
+							-- Crit and Haste conversions are the same for melee and haste, only hit is different
 						elseif stat.id == 6 then
 							if profileDB.ratingPhysical and profileDB.ratingSpell then
 								-- stat.id + 2 = SpellID
 								local effectSpell = StatLogic:GetEffectFromRating(value, stat.id + 2, calcLevel)
-								infoString = format("%+.2f%%, ", effect)..gsub(L["$value Spell"], "$value", format("%+.2f%%%%", effectSpell))
+								infoString = format("%+.2f%%, ", effect) .. gsub(L["$value Spell"], "$value", format("%+.2f%%%%", effectSpell))
 							elseif profileDB.ratingPhysical then
 								infoString = format("%+.2f%%", effect)
 							elseif profileDB.ratingSpell then
 								local effectSpell = StatLogic:GetEffectFromRating(value, stat.id + 2, calcLevel)
 								infoString = format("%+.2f%%", effectSpell)
 							end
-            -- CR_HASTE_MELEE = 18
-            -- shamans7, paladins2, druids10, and death knights6 now receive 30% more melee haste from Haste Rating. 
+							-- CR_HASTE_MELEE = 18
+							-- shamans7, paladins2, druids10, and death knights6 now receive 30% more melee haste from Haste Rating.
 						elseif stat.id == 18 then
 							if profileDB.ratingPhysical and profileDB.ratingSpell then
 								-- stat.id + 2 = SpellID
 								local effectSpell = StatLogic:GetEffectFromRating(value, stat.id + 2, calcLevel)
-                if effectSpell == effect then
-                  infoString = format("%+.2f%%", effect)
-                else
-                  infoString = format("%+.2f%%, ", effect)..gsub(L["$value Spell"], "$value", format("%+.2f%%%%", effectSpell))
-                end
+								if effectSpell == effect then
+									infoString = format("%+.2f%%", effect)
+								else
+									infoString = format("%+.2f%%, ", effect) .. gsub(L["$value Spell"], "$value", format("%+.2f%%%%", effectSpell))
+								end
 							elseif profileDB.ratingPhysical then
 								infoString = format("%+.2f%%", effect)
 							elseif profileDB.ratingSpell then
@@ -2901,10 +3097,11 @@ function RatingBuster:ProcessText(text, tooltip)
 							-- Build info string
 							infoString = format("%+.2f", effect)
 							if (stat.id > 2 and stat.id < 21) or stat.id == 25 then -- if rating is a percentage
-								infoString = infoString.."%"
+								infoString = infoString .. "%"
 							end
 						end
-					elseif stat.id == SPELL_STAT1_NAME and isModifierKeyDown[profileDB.showStats] and isModifierKeyDown[profileDB.showStats]() then
+					elseif stat.id == SPELL_STAT1_NAME and isModifierKeyDown[profileDB.showStats] and
+							isModifierKeyDown[profileDB.showStats]() then
 						--------------
 						-- Strength --
 						--------------
@@ -2924,17 +3121,57 @@ function RatingBuster:ProcessText(text, tooltip)
 							end
 						end
 						if profileDB.showBlockValueFromStr then
-							local effect = value * StatLogic:GetBlockValuePerStr(class) * RatingBuster:GetStatMod("MOD_BLOCK_VALUE")
-							if floor(abs(effect) * 10 + 0.5) > 0 then
+							--local effect = value * StatLogic:GetBlockValuePerStr(class) * RatingBuster:GetStatMod("MOD_BLOCK_VALUE")
+							--if floor(abs(effect) * 10 + 0.5) > 0 then
+							--	tinsert(infoTable, (gsub(L["$value Block"], "$value", format("%+.1f", effect))))
+							--end
+							effect = value * 0.5
+							if effect > 0 then
 								tinsert(infoTable, (gsub(L["$value Block"], "$value", format("%+.1f", effect))))
 							end
 						end
+
+						---Ascension Custom Conviction
+						if profileDB.showConviction then
+							local effect = StatLogic:GetEffectFromRating(value * 0.3, CR_CRIT_SPELL, calcLevel)
+							if effect > 0 then
+								tinsert(infoTable, (gsub(L["$value% Spell Crit"], "$value", format("%+.2f", effect))))
+							end
+						end
+
+						---Ascension Custom Divine Strength
+						if profileDB.showDivineStrength then
+							local effect = StatLogic:GetEffectFromRating(value * 0.06, "MELEE_HIT_RATING", calcLevel)
+							local effectSpell = StatLogic:GetEffectFromRating(value * 0.06, "SPELL_HIT_RATING", calcLevel)
+							if effect > 0 then
+								tinsert(infoTable, (gsub(L["$value% Melee Hit"], "$value", format("%+.2f", effect))))
+							end
+							if effectSpell > 0 then
+								tinsert(infoTable, (gsub(L["$value% Spell Hit"], "$value", format("%+.2f", effectSpell))))
+							end
+						end
+
+						---Ascension Custom Iron Will
+						if profileDB.showIronWill then
+							local rating = value * 0.25
+							local effect = StatLogic:GetEffectFromRating(rating, 4, calcLevel)
+							if profileDB.enableAvoidanceDiminishingReturns then
+								local effectNoDR = effect
+								effect = StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry + effect) -
+										StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry)
+								processedParry = processedParry + effectNoDR
+							end
+							if effect > 0 then
+								tinsert(infoTable, (gsub(L["$value% Parry"], "$value", format("%+.2f", effect))))
+							end
+						end
+
 						-- Shaman: Mental Quickness (Rank 3) - 2,15
 						-- Paladin: Sheath of Light
-						if profileDB.showSpellDmgFromStr then 
+						if profileDB.showSpellDmgFromStr then
 							local mod = RatingBuster:GetStatMod("MOD_AP") * RatingBuster:GetStatMod("MOD_SPELL_DMG")
 							local effect = (value * StatLogic:GetAPPerStr(class) * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_AP")
-								+ value * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_STR")) * mod
+									+ value * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_STR")) * mod
 							if (mod ~= 1 or statmod ~= 1) and floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Dmg"], "$value", format("%+.1f", effect))))
 							elseif floor(abs(effect) + 0.5) > 0 then
@@ -2943,10 +3180,10 @@ function RatingBuster:ProcessText(text, tooltip)
 						end
 						-- Shaman: Mental Quickness (Rank 3) - 2,15
 						-- Paladin: Sheath of Light
-						if profileDB.showHealingFromStr then 
-							local mod = RatingBuster:GetStatMod("MOD_AP") * RatingBuster:GetStatMod("MOD_HEAL")
-							local effect = (value * StatLogic:GetAPPerStr(class) * RatingBuster:GetStatMod("ADD_HEAL_MOD_AP")
-								+ value * RatingBuster:GetStatMod("ADD_HEAL_MOD_STR")) * mod
+						if profileDB.showHealingFromStr then
+							local mod = RatingBuster:GetStatMod("MOD_AP") * RatingBuster:GetStatMod("MOD_HEALING")
+							local effect = (value * StatLogic:GetAPPerStr(class) * RatingBuster:GetStatMod("ADD_HEALING_MOD_AP")
+									+ value * RatingBuster:GetStatMod("ADD_HEALING_MOD_STR")) * mod
 							if (mod ~= 1 or statmod ~= 1) and floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Heal"], "$value", format("%+.1f", effect))))
 							elseif floor(abs(effect) + 0.5) > 0 then
@@ -2954,23 +3191,25 @@ function RatingBuster:ProcessText(text, tooltip)
 							end
 						end
 						if profileDB.showParryFromStr then -- Death Knight: Forceful Deflection - Passive
-							local rating = value * RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR")
+							local rating = value * RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR")
 							local effect = StatLogic:GetEffectFromRating(rating, 4, calcLevel)
 							if profileDB.enableAvoidanceDiminishingReturns then
 								local effectNoDR = effect
-								effect = StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry + effect) - StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry)
+								effect = StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry + effect) -
+										StatLogic:GetAvoidanceGainAfterDR("PARRY", processedParry)
 								processedParry = processedParry + effectNoDR
 							end
 							if effect > 0 then
 								tinsert(infoTable, (gsub(L["$value% Parry"], "$value", format("%+.2f", effect))))
 							end
 						else
-							local rating = value * RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR")
+							local rating = value * RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR")
 							local effect = StatLogic:GetEffectFromRating(rating, 4, calcLevel)
 							processedParry = processedParry + effect
 						end
 						infoString = strjoin(", ", unpack(infoTable))
-					elseif stat.id == SPELL_STAT2_NAME and isModifierKeyDown[profileDB.showStats] and isModifierKeyDown[profileDB.showStats]() then
+					elseif stat.id == SPELL_STAT2_NAME and isModifierKeyDown[profileDB.showStats] and
+							isModifierKeyDown[profileDB.showStats]() then
 						-------------
 						-- Agility --
 						-------------
@@ -3006,9 +3245,16 @@ function RatingBuster:ProcessText(text, tooltip)
 						end
 						if profileDB.showDodgeFromAgi and (calcLevel == playerLevel) then
 							local effect = StatLogic:GetDodgeFromAgi(value)
+							local effectNR = 0
+
+							if profileDB.showNaturalReaction then
+								effect = effect + StatLogic:GetEffectFromRating(value * 0.25, "DODGE_RATING", calcLevel)
+							end
+
 							if profileDB.enableAvoidanceDiminishingReturns then
 								local effectNoDR = effect
-								effect = StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge + effect) - StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge)
+								effect = StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge + effect) -
+										StatLogic:GetAvoidanceGainAfterDR("DODGE", processedDodge)
 								processedDodge = processedDodge + effectNoDR
 							end
 							if effect > 0 then
@@ -3025,14 +3271,36 @@ function RatingBuster:ProcessText(text, tooltip)
 							end
 						end
 						if profileDB.showHealingFromAgi then
-							local mod = RatingBuster:GetStatMod("MOD_HEAL")
-							local effect = value * RatingBuster:GetStatMod("ADD_HEAL_MOD_AGI") * mod
+							local mod = RatingBuster:GetStatMod("MOD_HEALING")
+							local effect = value * RatingBuster:GetStatMod("ADD_HEALING_MOD_AGI") * mod
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Heal"], "$value", format("%+.1f", effect))))
 							end
 						end
+
+						--Ascension Custom Thundering Strikes
+						if profileDB.showThunderingStrikes then
+							local effect = StatLogic:GetEffectFromRating(value * 0.3, CR_CRIT_SPELL, calcLevel)
+							if effect > 0 then
+								tinsert(infoTable, (gsub(L["$value% Spell Crit"], "$value", format("%+.2f", effect))))
+							end
+						end
+
+						---Ascension Custom Shamanistic Focus/Combat Experience
+						if (profileDB.showShamanisticFocus or profileDB.showCombatExperience) then
+							local effect = StatLogic:GetEffectFromRating(value * 0.1, "SPELL_HIT_RATING", calcLevel)
+							if (profileDB.showShamanisticFocus and profileDB.showCombatExperience) then
+								effect = effect * 2
+							end
+							if effect > 0 then
+								tinsert(infoTable, (gsub(L["$value% Spell Hit"], "$value", format("%+.2f", effect))))
+							end
+						end
+
+
 						infoString = strjoin(", ", unpack(infoTable))
-					elseif stat.id == SPELL_STAT3_NAME and isModifierKeyDown[profileDB.showStats] and isModifierKeyDown[profileDB.showStats]() then
+					elseif stat.id == SPELL_STAT3_NAME and isModifierKeyDown[profileDB.showStats] and
+							isModifierKeyDown[profileDB.showStats]() then
 						-------------
 						-- Stamina --
 						-------------
@@ -3054,24 +3322,24 @@ function RatingBuster:ProcessText(text, tooltip)
 						-- "ADD_SPELL_DMG_MOD_AP" -- Warlock: Demonic Knowledge
 						if profileDB.showSpellDmgFromSta then
 							local mod = RatingBuster:GetStatMod("MOD_SPELL_DMG")
-							local effect = value * mod * (RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_STA") 
-								+ RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_STA") * RatingBuster:GetStatMod("ADD_PET_STA_MOD_STA"))
+							local effect = value * mod * (RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_STA")
+									+ RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_STA") * RatingBuster:GetStatMod("ADD_PET_STA_MOD_STA"))
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Dmg"], "$value", format("%+.1f", effect))))
 							end
 						end
-						-- "ADD_HEAL_MOD_STA" -- Warlock: Demonic Knowledge
+						-- "ADD_HEALING_MOD_STA" -- Warlock: Demonic Knowledge
 						if profileDB.showHealingFromSta then
-							local mod = RatingBuster:GetStatMod("MOD_HEAL")
-							local effect = value * RatingBuster:GetStatMod("ADD_HEAL_MOD_STA") * mod
+							local mod = RatingBuster:GetStatMod("MOD_HEALING")
+							local effect = value * RatingBuster:GetStatMod("ADD_HEALING_MOD_STA") * mod
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Heal"], "$value", format("%+.1f", effect))))
 							end
 						end
 						-- "ADD_AP_MOD_STA" -- Hunter: Hunter vs. Wild
-						if profileDB.showAPFromSta then
+						if profileDB.showHunterVSWild then
 							local mod = RatingBuster:GetStatMod("MOD_AP")
-							local effect = value * RatingBuster:GetStatMod("ADD_AP_MOD_STA") * mod
+							local effect = value * 0.2
 							if (mod ~= 1 or statmod ~= 1) and floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value AP"], "$value", format("%+.1f", effect))))
 							elseif floor(abs(effect) + 0.5) > 0 then
@@ -3079,7 +3347,8 @@ function RatingBuster:ProcessText(text, tooltip)
 							end
 						end
 						infoString = strjoin(", ", unpack(infoTable))
-					elseif stat.id == SPELL_STAT4_NAME and isModifierKeyDown[profileDB.showStats] and isModifierKeyDown[profileDB.showStats]() then
+					elseif stat.id == SPELL_STAT4_NAME and isModifierKeyDown[profileDB.showStats] and
+							isModifierKeyDown[profileDB.showStats]() then
 						---------------
 						-- Intellect --
 						---------------
@@ -3106,15 +3375,15 @@ function RatingBuster:ProcessText(text, tooltip)
 						end
 						if profileDB.showSpellDmgFromInt then
 							local mod = RatingBuster:GetStatMod("MOD_SPELL_DMG")
-							local effect = value * mod * (RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_INT") 
-								+ RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_INT") * RatingBuster:GetStatMod("ADD_PET_INT_MOD_INT"))
+							local effect = value * mod * (RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_INT")
+									+ RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_INT") * RatingBuster:GetStatMod("ADD_PET_INT_MOD_INT"))
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Dmg"], "$value", format("%+.1f", effect))))
 							end
 						end
 						if profileDB.showHealingFromInt then
-							local mod = RatingBuster:GetStatMod("MOD_HEAL")
-							local effect = value * RatingBuster:GetStatMod("ADD_HEAL_MOD_INT") * mod
+							local mod = RatingBuster:GetStatMod("MOD_HEALING")
+							local effect = value * RatingBuster:GetStatMod("ADD_HEALING_MOD_INT") * mod
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Heal"], "$value", format("%+.1f", effect))))
 							end
@@ -3123,9 +3392,10 @@ function RatingBuster:ProcessText(text, tooltip)
 							local _, int = UnitStat("player", 4)
 							local _, spi = UnitStat("player", 5)
 							local effect = value * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_INT")
-               + (StatLogic:GetNormalManaRegenFromSpi(spi, int + value, calcLevel)
-               - StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)) * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA_REG_NOT_CASTING")
-               + value * 15 * RatingBuster:GetStatMod("MOD_MANA") * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA") -- Replenishment
+									+ (StatLogic:GetNormalManaRegenFromSpi(spi, int + value, calcLevel)
+											- StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)) *
+									RatingBuster:GetStatMod("ADD_MANA_REG_MOD_NORMAL_MANA_REG")
+									+ value * 15 * RatingBuster:GetStatMod("MOD_MANA") * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA") -- Replenishment
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value MP5"], "$value", format("%+.1f", effect))))
 							end
@@ -3134,9 +3404,9 @@ function RatingBuster:ProcessText(text, tooltip)
 							local _, int = UnitStat("player", 4)
 							local _, spi = UnitStat("player", 5)
 							local effect = value * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_INT")
-               + StatLogic:GetNormalManaRegenFromSpi(spi, int + value, calcLevel)
-               - StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)
-               + value * 15 * RatingBuster:GetStatMod("MOD_MANA") * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA")
+									+ StatLogic:GetNormalManaRegenFromSpi(spi, int + value, calcLevel)
+									- StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)
+									+ value * 15 * RatingBuster:GetStatMod("MOD_MANA") * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA")
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value MP5(NC)"], "$value", format("%+.1f", effect))))
 							end
@@ -3165,7 +3435,8 @@ function RatingBuster:ProcessText(text, tooltip)
 							end
 						end
 						infoString = strjoin(", ", unpack(infoTable))
-					elseif stat.id == SPELL_STAT5_NAME and isModifierKeyDown[profileDB.showStats] and isModifierKeyDown[profileDB.showStats]() then
+					elseif stat.id == SPELL_STAT5_NAME and isModifierKeyDown[profileDB.showStats] and
+							isModifierKeyDown[profileDB.showStats]() then
 						------------
 						-- Spirit --
 						------------
@@ -3176,7 +3447,7 @@ function RatingBuster:ProcessText(text, tooltip)
 						end
 						local infoTable = {}
 						if profileDB.showMP5FromSpi then
-							local mod = RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA_REG_NOT_CASTING")
+							local mod = RatingBuster:GetStatMod("ADD_MANA_REG_MOD_NORMAL_MANA_REG")
 							local effect = StatLogic:GetNormalManaRegenFromSpi(value, nil, calcLevel) * mod
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value MP5"], "$value", format("%+.1f", effect))))
@@ -3194,16 +3465,19 @@ function RatingBuster:ProcessText(text, tooltip)
 								tinsert(infoTable, (gsub(L["$value HP5"], "$value", format("%+.1f", effect))))
 							end
 						end
+						-- "ADD_SCHOOL_SP_MOD_SPI" -- Priest: Twisted Faith,  Warlock: Fel Armor
 						if profileDB.showSpellDmgFromSpi then
 							local mod = RatingBuster:GetStatMod("MOD_SPELL_DMG")
-							local effect = value * (RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_SPI")) * mod
+							local effect = value *
+									(RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_SPI") + RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "SHADOW"))
+									* mod
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Dmg"], "$value", format("%+.1f", effect))))
 							end
 						end
 						if profileDB.showHealingFromSpi then
-							local mod = RatingBuster:GetStatMod("MOD_HEAL")
-							local effect = value * RatingBuster:GetStatMod("ADD_HEAL_MOD_SPI") * mod
+							local mod = RatingBuster:GetStatMod("MOD_HEALING")
+							local effect = value * RatingBuster:GetStatMod("ADD_HEALING_MOD_SPI") * mod
 							if floor(abs(effect) * 10 + 0.5) > 0 then
 								tinsert(infoTable, (gsub(L["$value Heal"], "$value", format("%+.1f", effect))))
 							end
@@ -3215,8 +3489,34 @@ function RatingBuster:ProcessText(text, tooltip)
 								tinsert(infoTable, (gsub(L["$value% Spell Crit"], "$value", format("%+.2f", effect))))
 							end
 						end
+
+						--Ascension Custom Spirit Crit
+						if (profileDB.showMeditation or profileDB.showMoltenArmor or profileDB.showSpiritTap) then
+							local mod = 0
+							if profileDB.showMeditation then
+								mod = mod + 0.15
+							end
+							if profileDB.showSpiritTap then
+								mod = mod + 0.2
+							end
+							if profileDB.showMoltenArmor then
+								mod = mod + 0.05
+							end
+
+							local effect = StatLogic:GetEffectFromRating(value * mod, CR_CRIT_SPELL, calcLevel)
+							if effect > 0 then
+								tinsert(infoTable, (gsub(L["$value% Spell Crit"], "$value", format("%+.2f", effect))))
+							end
+						end
+
 						infoString = strjoin(", ", unpack(infoTable))
-					elseif profileDB.showAPFromArmor and stat.id == ARMOR and isModifierKeyDown[profileDB.showStats] and isModifierKeyDown[profileDB.showStats]() then
+
+
+
+
+
+					elseif profileDB.showAPFromArmor and stat.id == ARMOR and isModifierKeyDown[profileDB.showStats] and
+							isModifierKeyDown[profileDB.showStats]() then
 						-----------
 						-- Armor --
 						-----------
@@ -3229,35 +3529,35 @@ function RatingBuster:ProcessText(text, tooltip)
 						end
 						local infoTable = {}
 						--if profileDB.showAPFromArmor then
-							local effect = value * RatingBuster:GetStatMod("ADD_AP_MOD_ARMOR") * RatingBuster:GetStatMod("MOD_AP")
-							if floor(abs(effect) * 10 + 0.5) > 0 then
-								tinsert(infoTable, (gsub(L["$value AP"], "$value", format("%+.1f", effect))))
-							end
+						local effect = value * RatingBuster:GetStatMod("ADD_AP_MOD_ARMOR") * RatingBuster:GetStatMod("MOD_AP")
+						if floor(abs(effect) * 10 + 0.5) > 0 then
+							tinsert(infoTable, (gsub(L["$value AP"], "$value", format("%+.1f", effect))))
+						end
 						--end
 						infoString = strjoin(", ", unpack(infoTable))
 					end
 					if infoString ~= "" then
 						-- Add parenthesis
-						infoString = "("..infoString..")"
+						infoString = "(" .. infoString .. ")"
 						-- Add Color
 						if profileDB.enableTextColor then
-							infoString = profileDB.textColor.hex..infoString..currentColorCode
+							infoString = profileDB.textColor.hex .. infoString .. currentColorCode
 						end
 						-- Build replacement string
 						if num.addInfo == "AfterNumber" then -- Add after number
 							infoString = gsub(infoString, "%%", "%%%%%%%%") -- sub "%" with "%%%%"
-							infoString = gsub(strsub(text, s, e), "%d+", "%0 "..infoString, 1) -- sub "33" with "33 (3.33%)"
+							infoString = gsub(strsub(text, s, e), "%d+", "%0 " .. infoString, 1) -- sub "33" with "33 (3.33%)"
 						else -- Add after stat
 							infoString = gsub(infoString, "%%", "%%%%")
 							s, e = strfind(lowerText, stat.pattern)
-							infoString = "%0 "..infoString
+							infoString = "%0 " .. infoString
 						end
 						-- Insert info into text
-						RusLocalstr = gsub(strsub(text, s, e),"%(","%%(")
-						RusLocalstr = gsub(RusLocalstr,"%)","%%)")
+						RusLocalstr = gsub(strsub(text, s, e), "%(", "%%(")
+						RusLocalstr = gsub(RusLocalstr, "%)", "%%)")
 						--RatingBuster:Print("Итоговая строка состоит из " .. text .. " в котором " .. strsub(text, s, e) .. " меняется на " .. infoString ..", в итоге " .. gsub(text, RusLocalstr, infoString, 1))
 						--RatingBuster:Print(RusLocalstr)
-						--RatingBuster:Print("-----------------------") 
+						--RatingBuster:Print("-----------------------")
 						return (gsub(text, RusLocalstr, infoString, 1)) -- because gsub has 2 return values, but we only want 1
 					end
 					return text
@@ -3268,7 +3568,6 @@ function RatingBuster:ProcessText(text, tooltip)
 	return text
 end
 
-
 -- Color Numbers
 local GREEN_FONT_COLOR_CODE = GREEN_FONT_COLOR_CODE -- "|cff20ff20" Green
 local HIGHLIGHT_FONT_COLOR_CODE = HIGHLIGHT_FONT_COLOR_CODE -- "|cffffffff" White
@@ -3276,11 +3575,11 @@ local RED_FONT_COLOR_CODE = RED_FONT_COLOR_CODE -- "|cffffffff" White
 local FONT_COLOR_CODE_CLOSE = FONT_COLOR_CODE_CLOSE -- "|r"
 local function colorNum(text, num)
 	if num > 0 then
-		return GREEN_FONT_COLOR_CODE..text..FONT_COLOR_CODE_CLOSE
+		return GREEN_FONT_COLOR_CODE .. text .. FONT_COLOR_CODE_CLOSE
 	elseif num < 0 then
-		return RED_FONT_COLOR_CODE..text..FONT_COLOR_CODE_CLOSE
+		return RED_FONT_COLOR_CODE .. text .. FONT_COLOR_CODE_CLOSE
 	else
-		return HIGHLIGHT_FONT_COLOR_CODE..text..FONT_COLOR_CODE_CLOSE
+		return HIGHLIGHT_FONT_COLOR_CODE .. text .. FONT_COLOR_CODE_CLOSE
 	end
 end
 
@@ -3329,7 +3628,8 @@ local summaryCalcData = {
 	{
 		option = "sumHP",
 		name = "HEALTH",
-		func = function(sum, sumType, link) return ((sum["HEALTH"] or 0) + (sum["STA"] * 10)) * RatingBuster:GetStatMod("MOD_HEALTH") end,
+		func = function(sum, sumType, link) return ((sum["HEALTH"] or 0) + (sum["STA"] * 10)) *
+				RatingBuster:GetStatMod("MOD_HEALTH") end,
 	},
 	-- Intellect - INT
 	{
@@ -3341,7 +3641,8 @@ local summaryCalcData = {
 	{
 		option = "sumMP",
 		name = "MANA",
-		func = function(sum, sumType, link) return ((sum["MANA"] or 0) + (sum["INT"] * 15)) * RatingBuster:GetStatMod("MOD_MANA") end,
+		func = function(sum, sumType, link) return ((sum["MANA"] or 0) + (sum["INT"] * 15)) *
+				RatingBuster:GetStatMod("MOD_MANA") end,
 	},
 	-- Spirit - SPI
 	{
@@ -3359,7 +3660,8 @@ local summaryCalcData = {
 	{
 		option = "sumHP5OC",
 		name = "HEALTH_REG_OUT_OF_COMBAT",
-		func = function(sum, sumType, link) return (sum["HEALTH_REG"] or 0) + StatLogic:GetHealthRegenFromSpi(sum["SPI"], class) end,
+		func = function(sum, sumType, link) return (sum["HEALTH_REG"] or 0) +
+				StatLogic:GetHealthRegenFromSpi(sum["SPI"], class) end,
 	},
 	-- Mana Regen - MANA_REG, SPI, INT
 	{
@@ -3369,10 +3671,11 @@ local summaryCalcData = {
 			local _, int = UnitStat("player", 4)
 			local _, spi = UnitStat("player", 5)
 			return (sum["MANA_REG"] or 0)
-			 + (sum["INT"] * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_INT"))
-			 + (StatLogic:GetNormalManaRegenFromSpi(spi + sum["SPI"], int + sum["INT"], calcLevel)
-			 - StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)) * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA_REG_NOT_CASTING")
-			 + summaryFunc["MANA"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA")
+					+ (sum["INT"] * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_INT"))
+					+ (StatLogic:GetNormalManaRegenFromSpi(spi + sum["SPI"], int + sum["INT"], calcLevel)
+							- StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)) *
+					RatingBuster:GetStatMod("ADD_MANA_REG_MOD_NORMAL_MANA_REG")
+					+ summaryFunc["MANA"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA")
 		end,
 	},
 	-- Mana Regen while Not casting - MANA_REG, SPI, INT
@@ -3383,26 +3686,27 @@ local summaryCalcData = {
 			local _, int = UnitStat("player", 4)
 			local _, spi = UnitStat("player", 5)
 			return (sum["MANA_REG"] or 0)
-			 + (sum["INT"] * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_INT"))
-			 + StatLogic:GetNormalManaRegenFromSpi(spi + sum["SPI"], int + sum["INT"], calcLevel)
-			 - StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)
-			 + summaryFunc["MANA"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA")
+					+ (sum["INT"] * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_INT"))
+					+ StatLogic:GetNormalManaRegenFromSpi(spi + sum["SPI"], int + sum["INT"], calcLevel)
+					- StatLogic:GetNormalManaRegenFromSpi(spi, int, calcLevel)
+					+ summaryFunc["MANA"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_MANA_REG_MOD_MANA")
 		end,
 	},
 	---------------------
 	-- Physical Damage --
 	---------------------
-	-- Attack Power - AP, STR, AGI. 
+	-- Attack Power - AP, STR, AGI.
 	-- "ADD_AP_MOD_STA" -- Hunter: Hunter vs. Wild
 	-- "ADD_AP_MOD_ARMOR" -- Death Knight: Bladed Armor
 	-- "ADD_AP_MOD_INT" -- Shaman: Mental Dexterity
+	-- "ADD_AP_MOD_SPELL_DMG" -- Warlock: Metamorphosis
 	{
 		option = "sumAP",
 		name = "AP",
 		func = function(sum, sumType, link)
-			local ap = (sum["AP"] or 0) 
-			 + (sum["STR"] * StatLogic:GetAPPerStr(class))
-			 + (sum["AGI"] * StatLogic:GetAPPerAgi(class))
+			local ap = (sum["AP"] or 0)
+					+ (sum["STR"] * StatLogic:GetAPPerStr(class))
+					+ (sum["AGI"] * StatLogic:GetAPPerAgi(class))
 			if RatingBuster:GetStatMod("ADD_AP_MOD_STA") ~= 0 then
 				ap = ap + (sum["STA"] * RatingBuster:GetStatMod("ADD_AP_MOD_STA"))
 			end
@@ -3411,6 +3715,14 @@ local summaryCalcData = {
 			end
 			if RatingBuster:GetStatMod("ADD_AP_MOD_INT") ~= 0 then
 				ap = ap + (sum["INT"] * RatingBuster:GetStatMod("ADD_AP_MOD_INT"))
+			end
+			if RatingBuster:GetStatMod("ADD_AP_MOD_SPELL_DMG") ~= 0 then
+				local spellDmg = ((sum["SPELL_DMG"] or 0)
+						+ (sum["STA"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_STA"))
+						+ (sum["INT"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_INT"))
+						+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_SPI"))
+						) * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+				ap = ap + (spellDmg * RatingBuster:GetStatMod("ADD_AP_MOD_SPELL_DMG"))
 			end
 			-- Druid: Predatory Strikes 2,10: Increases 7%/14%/20% of any attack power on your equipped weapon.
 			local p = 0
@@ -3434,8 +3746,8 @@ local summaryCalcData = {
 		name = "RANGED_AP",
 		func = function(sum, sumType, link)
 			local rap = (sum["RANGED_AP"] or 0)
-			 + (sum["AP"] or 0)
-			 + (sum["AGI"] * StatLogic:GetRAPPerAgi(class))
+					+ (sum["AP"] or 0)
+					+ (sum["AGI"] * StatLogic:GetRAPPerAgi(class))
 			if RatingBuster:GetStatMod("ADD_RANGED_AP_MOD_INT") ~= 0 then
 				rap = rap + (sum["INT"] * RatingBuster:GetStatMod("ADD_RANGED_AP_MOD_INT"))
 			end
@@ -3447,6 +3759,14 @@ local summaryCalcData = {
 			end
 			if RatingBuster:GetStatMod("ADD_AP_MOD_INT") ~= 0 then
 				rap = rap + (sum["INT"] * RatingBuster:GetStatMod("ADD_AP_MOD_INT"))
+			end
+			if RatingBuster:GetStatMod("ADD_AP_MOD_SPELL_DMG") ~= 0 then
+				local spellDmg = ((sum["SPELL_DMG"] or 0)
+						+ (sum["STA"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_STA"))
+						+ (sum["INT"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_INT"))
+						+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_SPI"))
+						) * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+				rap = rap + (spellDmg * RatingBuster:GetStatMod("ADD_AP_MOD_SPELL_DMG"))
 			end
 			return rap * (RatingBuster:GetStatMod("MOD_RANGED_AP") + RatingBuster:GetStatMod("MOD_AP") - 1)
 		end,
@@ -3473,12 +3793,18 @@ local summaryCalcData = {
 			return fap
 		end,
 	},
-	-- Hit Chance - MELEE_HIT_RATING
+	-- Hit Chance - MELEE_HIT_RATING, WEAPON_RATING
 	{
 		option = "sumHit",
 		name = "MELEE_HIT",
 		func = function(sum, sumType, link)
 			local s = 0
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					s = s + StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+					break
+				end
+			end
 			return s + StatLogic:GetEffectFromRating((sum["MELEE_HIT_RATING"] or 0), "MELEE_HIT_RATING", calcLevel)
 		end,
 		ispercent = true,
@@ -3489,14 +3815,20 @@ local summaryCalcData = {
 		name = "MELEE_HIT_RATING",
 		func = function(sum, sumType, link) return (sum["MELEE_HIT_RATING"] or 0) end,
 	},
-	-- Ranged Hit Chance - MELEE_HIT_RATING, RANGED_HIT_RATING
+	-- Ranged Hit Chance - MELEE_HIT_RATING, WEAPON_RATING, RANGED_HIT_RATING
 	{
 		option = "sumRangedHit",
 		name = "RANGED_HIT",
 		func = function(sum, sumType, link)
 			local s = 0
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					s = s + StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+					break
+				end
+			end
 			return s + StatLogic:GetEffectFromRating((sum["MELEE_HIT_RATING"] or 0), "MELEE_HIT_RATING", calcLevel)
-					 + StatLogic:GetEffectFromRating((sum["RANGED_HIT_RATING"] or 0), "RANGED_HIT_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["RANGED_HIT_RATING"] or 0), "RANGED_HIT_RATING", calcLevel)
 		end,
 		ispercent = true,
 	},
@@ -3506,14 +3838,20 @@ local summaryCalcData = {
 		name = "RANGED_HIT_RATING",
 		func = function(sum, sumType, link) return (sum["MELEE_HIT_RATING"] or 0) + (sum["RANGED_HIT_RATING"] or 0) end,
 	},
-	-- Crit Chance - MELEE_CRIT_RATING, AGI
+	-- Crit Chance - MELEE_CRIT_RATING, WEAPON_RATING, AGI
 	{
 		option = "sumCrit",
 		name = "MELEE_CRIT",
 		func = function(sum, sumType, link)
 			local s = 0
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					s = s + StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+					break
+				end
+			end
 			return s + StatLogic:GetEffectFromRating((sum["MELEE_CRIT_RATING"] or 0), "MELEE_CRIT_RATING", calcLevel)
-					 + StatLogic:GetCritFromAgi(sum["AGI"], class, calcLevel)
+					+ StatLogic:GetCritFromAgi(sum["AGI"], class, calcLevel)
 		end,
 		ispercent = true,
 	},
@@ -3523,15 +3861,21 @@ local summaryCalcData = {
 		name = "MELEE_CRIT_RATING",
 		func = function(sum, sumType, link) return (sum["MELEE_CRIT_RATING"] or 0) end,
 	},
-	-- Ranged Crit Chance - MELEE_CRIT_RATING, AGI, RANGED_CRIT_RATING
+	-- Ranged Crit Chance - MELEE_CRIT_RATING, WEAPON_RATING, AGI, RANGED_CRIT_RATING
 	{
 		option = "sumRangedCrit",
 		name = "RANGED_CRIT",
 		func = function(sum, sumType, link)
 			local s = 0
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					s = s + StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+					break
+				end
+			end
 			return s + StatLogic:GetEffectFromRating((sum["MELEE_CRIT_RATING"] or 0), "MELEE_CRIT_RATING", calcLevel)
-					 + StatLogic:GetEffectFromRating((sum["RANGED_CRIT_RATING"] or 0), "RANGED_CRIT_RATING", calcLevel)
-					 + StatLogic:GetCritFromAgi(sum["AGI"], class, calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["RANGED_CRIT_RATING"] or 0), "RANGED_CRIT_RATING", calcLevel)
+					+ StatLogic:GetCritFromAgi(sum["AGI"], class, calcLevel)
 		end,
 		ispercent = true,
 	},
@@ -3545,7 +3889,8 @@ local summaryCalcData = {
 	{
 		option = "sumHaste",
 		name = "MELEE_HASTE",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MELEE_HASTE_RATING"] or 0), "MELEE_HASTE_RATING", calcLevel) end,
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MELEE_HASTE_RATING"] or 0),
+			"MELEE_HASTE_RATING", calcLevel) end,
 		ispercent = true,
 	},
 	-- Haste Rating - MELEE_HASTE_RATING
@@ -3560,7 +3905,7 @@ local summaryCalcData = {
 		name = "RANGED_HASTE",
 		func = function(sum, sumType, link)
 			return StatLogic:GetEffectFromRating((sum["MELEE_HASTE_RATING"] or 0), "MELEE_HASTE_RATING", calcLevel)
-				+ StatLogic:GetEffectFromRating((sum["RANGED_HASTE_RATING"] or 0), "RANGED_HASTE_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["RANGED_HASTE_RATING"] or 0), "RANGED_HASTE_RATING", calcLevel)
 		end,
 		ispercent = true,
 	},
@@ -3574,7 +3919,8 @@ local summaryCalcData = {
 	{
 		option = "sumExpertise",
 		name = "EXPERTISE",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["EXPERTISE_RATING"] or 0), "EXPERTISE_RATING", calcLevel) end,
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["EXPERTISE_RATING"] or 0),
+			"EXPERTISE_RATING", calcLevel) end,
 	},
 	-- Expertise Rating - EXPERTISE_RATING
 	{
@@ -3582,35 +3928,63 @@ local summaryCalcData = {
 		name = "EXPERTISE_RATING",
 		func = function(sum, sumType, link) return (sum["EXPERTISE_RATING"] or 0) end,
 	},
-	-- Mastery - MASTERY_RATING
+	-- Armor Penetration - ARMOR_PENETRATION_RATING
 	{
-		option = "sumMastery",
-		name = "MASTERY",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MASTERY_RATING"] or 0), "MASTERY_RATING", calcLevel) end,
+		option = "sumArmorPenetration",
+		name = "ARMOR_PENETRATION",
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["ARMOR_PENETRATION_RATING"] or 0),
+			"ARMOR_PENETRATION_RATING", calcLevel) end,
+		ispercent = true,
 	},
-	-- Mastery Rating - MASTERY_RATING
+	-- Armor Penetration Rating - ARMOR_PENETRATION_RATING
 	{
-		option = "sumMasteryRating",
-		name = "MASTERY_RATING",
-		func = function(sum, sumType, link) return (sum["MASTERY_RATING"] or 0) end,
+		option = "sumArmorPenetrationRating",
+		name = "ARMOR_PENETRATION_RATING",
+		func = function(sum, sumType, link) return (sum["ARMOR_PENETRATION_RATING"] or 0) end,
 	},
-	-- Dodge Neglect - EXPERTISE_RATING
+	-- Dodge Neglect - EXPERTISE_RATING, WEAPON_RATING -- 2.3.0
 	{
 		option = "sumDodgeNeglect",
 		name = "DODGE_NEGLECT",
 		func = function(sum, sumType, link)
-			local s = StatLogic:GetEffectFromRating((sum["EXPERTISE_RATING"] or 0), "EXPERTISE_RATING", calcLevel) * 0.25
+			local s = 0
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					s = StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+				end
+			end
+			s = s + StatLogic:GetEffectFromRating((sum["EXPERTISE_RATING"] or 0), "EXPERTISE_RATING", calcLevel) * 0.25
 			return s
 		end,
 		ispercent = true,
 	},
-	-- Parry Neglect - EXPERTISE_RATING
+	-- Parry Neglect - EXPERTISE_RATING, WEAPON_RATING -- 2.3.0
 	{
 		option = "sumParryNeglect",
 		name = "PARRY_NEGLECT",
 		func = function(sum, sumType, link)
-			local s = StatLogic:GetEffectFromRating((sum["EXPERTISE_RATING"] or 0), "EXPERTISE_RATING", calcLevel) * 0.25
+			local s = 0
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					s = StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+				end
+			end
+			s = s + StatLogic:GetEffectFromRating((sum["EXPERTISE_RATING"] or 0), "EXPERTISE_RATING", calcLevel) * 0.25
 			return s
+		end,
+		ispercent = true,
+	},
+	-- Block Neglect - WEAPON_RATING
+	{
+		option = "sumBlockNeglect",
+		name = "BLOCK_NEGLECT",
+		func = function(sum, sumType, link)
+			for id, v in pairs(sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					return StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel) * 0.04
+				end
+			end
+			return 0
 		end,
 		ispercent = true,
 	},
@@ -3619,6 +3993,12 @@ local summaryCalcData = {
 		option = "sumWeaponMaxDamage",
 		name = "MAX_DAMAGE",
 		func = function(sum, sumType, link) return (sum["MAX_DAMAGE"] or 0) end,
+	},
+	-- Ignore Armor - IGNORE_ARMOR
+	{
+		option = "sumIgnoreArmor",
+		name = "IGNORE_ARMOR",
+		func = function(sum, sumType, link) return (sum["IGNORE_ARMOR"] or 0) end,
 	},
 	------------------------------
 	-- Spell Damage and Healing --
@@ -3645,110 +4025,123 @@ local summaryCalcData = {
 				spellDmg = spellDmg + (summaryFunc["AP"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_AP"))
 			end
 			if RatingBuster:GetStatMod("ADD_PET_STA_MOD_STA") ~= 0 then
-				spellDmg = spellDmg + (sum["STA"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_STA") * RatingBuster:GetStatMod("ADD_PET_STA_MOD_STA"))
-				spellDmg = spellDmg + (sum["INT"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_INT") * RatingBuster:GetStatMod("ADD_PET_INT_MOD_INT"))
+				spellDmg = spellDmg +
+						(
+						sum["STA"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_STA") * RatingBuster:GetStatMod("ADD_PET_STA_MOD_STA")
+						)
+				spellDmg = spellDmg +
+						(
+						sum["INT"] * RatingBuster:GetStatMod("ADD_SPELL_DMG_MOD_PET_INT") * RatingBuster:GetStatMod("ADD_PET_INT_MOD_INT")
+						)
 			end
 			return spellDmg * RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
-	-- Holy Damage - HOLY_SPELL_DMG, SPELL_DMG, 
+	-- Holy Damage - HOLY_SPELL_DMG, SPELL_DMG,
 	{
 		option = "sumHolyDmg",
 		name = "HOLY_SPELL_DMG",
 		func = function(sum, sumType, link)
 			return summaryFunc["SPELL_DMG"](sum, sumType, link)
-			 + ((sum["HOLY_SPELL_DMG"] or 0))
-			 * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+					+ ((sum["HOLY_SPELL_DMG"] or 0)
+							+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "HOLY")))
+					* RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
-	-- Arcane Damage - ARCANE_SPELL_DMG, SPELL_DMG, 
+	-- Arcane Damage - ARCANE_SPELL_DMG, SPELL_DMG,
 	{
 		option = "sumArcaneDmg",
 		name = "ARCANE_SPELL_DMG",
 		func = function(sum, sumType, link)
 			return summaryFunc["SPELL_DMG"](sum, sumType, link)
-			 + ((sum["ARCANE_SPELL_DMG"] or 0))
-			 * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+					+ ((sum["ARCANE_SPELL_DMG"] or 0)
+							+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "ARCANE")))
+					* RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
-	-- Fire Damage - FIRE_SPELL_DMG, SPELL_DMG, 
+	-- Fire Damage - FIRE_SPELL_DMG, SPELL_DMG,
 	{
 		option = "sumFireDmg",
 		name = "FIRE_SPELL_DMG",
 		func = function(sum, sumType, link)
 			return summaryFunc["SPELL_DMG"](sum, sumType, link)
-			 + ((sum["FIRE_SPELL_DMG"] or 0))
-			 * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+					+ ((sum["FIRE_SPELL_DMG"] or 0)
+							+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "FIRE")))
+					* RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
-	-- Nature Damage - NATURE_SPELL_DMG, SPELL_DMG, 
+	-- Nature Damage - NATURE_SPELL_DMG, SPELL_DMG,
 	{
 		option = "sumNatureDmg",
 		name = "NATURE_SPELL_DMG",
 		func = function(sum, sumType, link)
 			return summaryFunc["SPELL_DMG"](sum, sumType, link)
-			 + ((sum["NATURE_SPELL_DMG"] or 0))
-			 * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+					+ ((sum["NATURE_SPELL_DMG"] or 0)
+							+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "NATURE")))
+					* RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
-	-- Frost Damage - FROST_SPELL_DMG, SPELL_DMG, 
+	-- Frost Damage - FROST_SPELL_DMG, SPELL_DMG,
 	{
 		option = "sumFrostDmg",
 		name = "FROST_SPELL_DMG",
 		func = function(sum, sumType, link)
 			return summaryFunc["SPELL_DMG"](sum, sumType, link)
-			 + ((sum["FROST_SPELL_DMG"] or 0))
-			 * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+					+ ((sum["FROST_SPELL_DMG"] or 0)
+							+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "FROST")))
+					* RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
-	-- Shadow Damage - SHADOW_SPELL_DMG, SPELL_DMG
+	-- Shadow Damage - SHADOW_SPELL_DMG, SPELL_DMG, ADD_SCHOOL_SP_MOD_SPI
 	{
 		option = "sumShadowDmg",
 		name = "SHADOW_SPELL_DMG",
 		func = function(sum, sumType, link)
 			return summaryFunc["SPELL_DMG"](sum, sumType, link)
-			 + ((sum["SHADOW_SPELL_DMG"] or 0))
-			 * RatingBuster:GetStatMod("MOD_SPELL_DMG")
+					+ ((sum["SHADOW_SPELL_DMG"] or 0)
+							+ (sum["SPI"] * RatingBuster:GetStatMod("ADD_SCHOOL_SP_MOD_SPI", "SHADOW")))
+					* RatingBuster:GetStatMod("MOD_SPELL_DMG")
 		end,
 	},
 	-- Healing - HEAL, AGI, STR, INT, SPI
-	-- "ADD_HEAL_MOD_STR" -- Paladin: Touched by the Light
-	-- "ADD_HEAL_MOD_AGI" -- Druid: Nurturing Instinct
-	-- "ADD_HEAL_MOD_STA"
-	-- "ADD_HEAL_MOD_INT"
-	-- "ADD_HEAL_MOD_SPI"
-	-- "ADD_HEAL_MOD_AP" -- Shaman: Mental Quickness
+	-- "ADD_HEALING_MOD_STR" -- Paladin: Touched by the Light
+	-- "ADD_HEALING_MOD_AGI" -- Druid: Nurturing Instinct
+	-- "ADD_HEALING_MOD_STA"
+	-- "ADD_HEALING_MOD_INT"
+	-- "ADD_HEALING_MOD_SPI"
+	-- "ADD_HEALING_MOD_AP" -- Shaman: Mental Quickness
 	{
 		option = "sumHealing",
 		name = "HEAL",
 		func = function(sum, sumType, link)
 			local heal = (sum["HEAL"] or 0)
-			if RatingBuster:GetStatMod("ADD_HEAL_MOD_STR") ~= 0 then
-				heal = heal + (sum["STR"] * RatingBuster:GetStatMod("ADD_HEAL_MOD_STR"))
+			if RatingBuster:GetStatMod("ADD_HEALING_MOD_STR") ~= 0 then
+				heal = heal + (sum["STR"] * RatingBuster:GetStatMod("ADD_HEALING_MOD_STR"))
 			end
-			if RatingBuster:GetStatMod("ADD_HEAL_MOD_AGI") ~= 0 then
-				heal = heal + (sum["AGI"] * RatingBuster:GetStatMod("ADD_HEAL_MOD_AGI"))
+			if RatingBuster:GetStatMod("ADD_HEALING_MOD_AGI") ~= 0 then
+				heal = heal + (sum["AGI"] * RatingBuster:GetStatMod("ADD_HEALING_MOD_AGI"))
 			end
-			if RatingBuster:GetStatMod("ADD_HEAL_MOD_STA") ~= 0 then
-				heal = heal + (sum["STA"] * RatingBuster:GetStatMod("ADD_HEAL_MOD_STA"))
+			if RatingBuster:GetStatMod("ADD_HEALING_MOD_STA") ~= 0 then
+				heal = heal + (sum["STA"] * RatingBuster:GetStatMod("ADD_HEALING_MOD_STA"))
 			end
-			if RatingBuster:GetStatMod("ADD_HEAL_MOD_INT") ~= 0 then
-				heal = heal + (sum["INT"] * RatingBuster:GetStatMod("ADD_HEAL_MOD_INT"))
+			if RatingBuster:GetStatMod("ADD_HEALING_MOD_INT") ~= 0 then
+				heal = heal + (sum["INT"] * RatingBuster:GetStatMod("ADD_HEALING_MOD_INT"))
 			end
-			if RatingBuster:GetStatMod("ADD_HEAL_MOD_SPI") ~= 0 then
-				heal = heal + (sum["SPI"] * RatingBuster:GetStatMod("ADD_HEAL_MOD_SPI"))
+			if RatingBuster:GetStatMod("ADD_HEALING_MOD_SPI") ~= 0 then
+				heal = heal + (sum["SPI"] * RatingBuster:GetStatMod("ADD_HEALING_MOD_SPI"))
 			end
-			if RatingBuster:GetStatMod("ADD_HEAL_MOD_AP") ~= 0 then
-				heal = heal + (summaryFunc["AP"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_HEAL_MOD_AP"))
+			if RatingBuster:GetStatMod("ADD_HEALING_MOD_AP") ~= 0 then
+				heal = heal + (summaryFunc["AP"](sum, sumType, link) * RatingBuster:GetStatMod("ADD_HEALING_MOD_AP"))
 			end
-			return heal * RatingBuster:GetStatMod("MOD_HEAL")
+			return heal * RatingBuster:GetStatMod("MOD_HEALING")
 		end,
 	},
 	-- Spell Hit Chance - SPELL_HIT_RATING
 	{
 		option = "sumSpellHit",
 		name = "SPELL_HIT",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["SPELL_HIT_RATING"] or 0), "SPELL_HIT_RATING", calcLevel) end,
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["SPELL_HIT_RATING"] or 0),
+			"SPELL_HIT_RATING", calcLevel) end,
 		ispercent = true,
 	},
 	-- Spell Hit Rating - SPELL_HIT_RATING
@@ -3762,8 +4155,9 @@ local summaryCalcData = {
 		option = "sumSpellCrit",
 		name = "SPELL_CRIT",
 		func = function(sum, sumType, link)
-			return StatLogic:GetEffectFromRating((sum["SPELL_CRIT_RATING"] or 0) + sum["SPI"] * RatingBuster:GetStatMod("ADD_SPELL_CRIT_RATING_MOD_SPI"), "SPELL_CRIT_RATING", calcLevel)
-			 + StatLogic:GetSpellCritFromInt(sum["INT"], class, calcLevel)
+			return StatLogic:GetEffectFromRating((sum["SPELL_CRIT_RATING"] or 0) +
+				sum["SPI"] * RatingBuster:GetStatMod("ADD_SPELL_CRIT_RATING_MOD_SPI"), "SPELL_CRIT_RATING", calcLevel)
+					+ StatLogic:GetSpellCritFromInt(sum["INT"], class, calcLevel)
 		end,
 		ispercent = true,
 	},
@@ -3771,13 +4165,15 @@ local summaryCalcData = {
 	{
 		option = "sumSpellCritRating",
 		name = "SPELL_CRIT_RATING",
-		func = function(sum, sumType, link) return (sum["SPELL_CRIT_RATING"] or 0) + sum["SPI"] * RatingBuster:GetStatMod("ADD_SPELL_CRIT_RATING_MOD_SPI") end,
+		func = function(sum, sumType, link) return (sum["SPELL_CRIT_RATING"] or 0) +
+				sum["SPI"] * RatingBuster:GetStatMod("ADD_SPELL_CRIT_RATING_MOD_SPI") end,
 	},
 	-- Spell Haste - SPELL_HASTE_RATING
 	{
 		option = "sumSpellHaste",
 		name = "SPELL_HASTE",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["SPELL_HASTE_RATING"] or 0), "SPELL_HASTE_RATING", calcLevel) end,
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["SPELL_HASTE_RATING"] or 0),
+			"SPELL_HASTE_RATING", calcLevel) end,
 		ispercent = true,
 	},
 	-- Spell Haste Rating - SPELL_HASTE_RATING
@@ -3800,30 +4196,32 @@ local summaryCalcData = {
 		option = "sumArmor",
 		name = "ARMOR",
 		func = function(sum, sumType, link)
-			-- Bonus armor beyond the base armor of an item will no longer be multiplied, 
+			-- Bonus armor beyond the base armor of an item will no longer be multiplied,
 			-- this includes armor from Necks, Rings, Trinkets, Weapons
 			-- Commented out because StatLogic now handles this
 			-- local itemType = select(9, GetItemInfo(link))
 			-- local mod = 1
 			-- if not modFreeArmorItemEquipLoc[itemType] then
-				-- mod = RatingBuster:GetStatMod("MOD_ARMOR")
+			-- mod = RatingBuster:GetStatMod("MOD_ARMOR")
 			-- end
 			return (sum["ARMOR"] or 0) * RatingBuster:GetStatMod("MOD_ARMOR")
-			 + (sum["ARMOR_BONUS"] or 0)
+					+ (sum["ARMOR_BONUS"] or 0) + ((sum["AGI"] or 0) * 2)
+					+ ((sum["INT"] or 0) * RatingBuster:GetStatMod("ADD_ARMOR_MOD_INT"))
 		end,
 	},
-	-- Dodge Chance Before DR - DODGE_RATING, AGI
+	-- Dodge Chance Before DR - DODGE_RATING, DEFENSE_RATING, AGI
 	{
 		option = "sumDodgeBeforeDR",
 		name = "DODGE_NO_DR",
 		func = function(sum, sumType, link)
 			local dodge = StatLogic:GetEffectFromRating((sum["DODGE_RATING"] or 0), "DODGE_RATING", calcLevel)
-				+ StatLogic:GetDodgeFromAgi(sum["AGI"] or 0)
+					+ StatLogic:GetEffectFromRating((sum["DEFENSE_RATING"] or 0), "DEFENSE_RATING", calcLevel) * 0.04
+					+ StatLogic:GetDodgeFromAgi(sum["AGI"] or 0)
 			return dodge
 		end,
 		ispercent = true,
 	},
-	-- Dodge Chance - DODGE_RATING, AGI
+	-- Dodge Chance - DODGE_RATING, DEFENSE_RATING, AGI
 	{
 		option = "sumDodge",
 		name = "DODGE",
@@ -3833,7 +4231,8 @@ local summaryCalcData = {
 				if (sumType == "diff1") or (sumType == "diff2") then
 					dodge = StatLogic:GetAvoidanceGainAfterDR("DODGE", dodge)
 				elseif sumType == "sum" then
-					dodge = StatLogic:GetAvoidanceGainAfterDR("DODGE", equippedDodge + dodge) - StatLogic:GetAvoidanceGainAfterDR("DODGE", equippedDodge)
+					dodge = StatLogic:GetAvoidanceGainAfterDR("DODGE", equippedDodge + dodge) -
+							StatLogic:GetAvoidanceGainAfterDR("DODGE", equippedDodge)
 				end
 			end
 			return dodge
@@ -3846,28 +4245,30 @@ local summaryCalcData = {
 		name = "DODGE_RATING",
 		func = function(sum, sumType, link) return (sum["DODGE_RATING"] or 0) end,
 	},
-	-- Parry Chance Before DR - PARRY_RATING
+	-- Parry Chance Before DR - PARRY_RATING, DEFENSE_RATING
 	{
 		option = "sumParryBeforeDR",
 		name = "PARRY_NO_DR",
 		func = function(sum, sumType, link)
 			if GetParryChance() == 0 then return 0 end
 			local parryRating = (sum["PARRY_RATING"] or 0)
-			if RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR") ~= 0 then
-				if(sumType == "diff1" or sumType == "diff2") then
+			if RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR") ~= 0 then
+				if (sumType == "diff1" or sumType == "diff2") then
 					local str = UnitStat("player", 1)
 					local newStr = (sum["STR"] or 0) + str
-					parryRating = parryRating + floor(newStr * RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR")) - floor(str * RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR"))
+					parryRating = parryRating + floor(newStr * RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR")) -
+							floor(str * RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR"))
 				else
-					parryRating = parryRating + (sum["STR"] or 0) * RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR")
+					parryRating = parryRating + (sum["STR"] or 0) * RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR")
 				end
 			end
 			local parry = StatLogic:GetEffectFromRating(parryRating, "PARRY_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["DEFENSE_RATING"] or 0), "DEFENSE_RATING", calcLevel) * 0.04
 			return parry
 		end,
 		ispercent = true,
 	},
-	-- Parry Chance - PARRY_RATING
+	-- Parry Chance - PARRY_RATING, DEFENSE_RATING
 	{
 		option = "sumParry",
 		name = "PARRY",
@@ -3877,7 +4278,8 @@ local summaryCalcData = {
 				if (sumType == "diff1") or (sumType == "diff2") then
 					parry = StatLogic:GetAvoidanceGainAfterDR("PARRY", parry)
 				elseif sumType == "sum" then
-					parry = StatLogic:GetAvoidanceGainAfterDR("PARRY", equippedParry + parry) - StatLogic:GetAvoidanceGainAfterDR("PARRY", equippedParry)
+					parry = StatLogic:GetAvoidanceGainAfterDR("PARRY", equippedParry + parry) -
+							StatLogic:GetAvoidanceGainAfterDR("PARRY", equippedParry)
 				end
 			end
 			return parry
@@ -3885,19 +4287,21 @@ local summaryCalcData = {
 		ispercent = true,
 	},
 	-- Parry Rating - PARRY_RATING
-	-- "ADD_PARRY_RATING_MOD_STR" -- Death Knight: Forceful Deflection - Passive
+	-- "ADD_CR_PARRY_MOD_STR" -- Death Knight: Forceful Deflection - Passive
 	{
 		option = "sumParryRating",
 		name = "PARRY_RATING",
-		func = function(sum, sumType, link) return (sum["PARRY_RATING"] or 0) + (sum["STR"] * RatingBuster:GetStatMod("ADD_PARRY_RATING_MOD_STR")) end,
+		func = function(sum, sumType, link) return (sum["PARRY_RATING"] or 0) +
+				(sum["STR"] * RatingBuster:GetStatMod("ADD_CR_PARRY_MOD_STR")) end,
 	},
-	-- Block Chance - BLOCK_RATING
+	-- Block Chance - BLOCK_RATING, DEFENSE_RATING
 	{
 		option = "sumBlock",
 		name = "BLOCK",
 		func = function(sum, sumType, link)
 			if GetBlockChance() == 0 then return 0 end
 			return StatLogic:GetEffectFromRating((sum["BLOCK_RATING"] or 0), "BLOCK_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["DEFENSE_RATING"] or 0), "DEFENSE_RATING", calcLevel) * 0.04
 		end,
 		ispercent = true,
 	},
@@ -3907,14 +4311,28 @@ local summaryCalcData = {
 		name = "BLOCK_RATING",
 		func = function(sum, sumType, link) return (sum["BLOCK_RATING"] or 0) end,
 	},
-	-- Hit Avoidance Before DR - MELEE_HIT_AVOID_RATING
+	-- Block Value - BLOCK_VALUE, STR
+	{
+		option = "sumBlockValue",
+		name = "BLOCK_VALUE",
+		func = function(sum, sumType, link)
+			if GetBlockChance() == 0 then return 0 end
+			return ((sum["BLOCK_VALUE"] or 0) + ((sum["STR"] or 0) * StatLogic:GetBlockValuePerStr(class))) *
+					RatingBuster:GetStatMod("MOD_BLOCK_VALUE")
+
+		end,
+	},
+	-- Hit Avoidance Before DR - DEFENSE_RATING, MELEE_HIT_AVOID_RATING
 	{
 		option = "sumHitAvoidBeforeDR",
 		name = "MELEE_HIT_AVOID_NO_DR",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MELEE_HIT_AVOID_RATING"] or 0), "MELEE_HIT_AVOID_RATING", calcLevel) end,
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MELEE_HIT_AVOID_RATING"] or 0),
+				"MELEE_HIT_AVOID_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["DEFENSE_RATING"] or 0), "DEFENSE_RATING", calcLevel) * 0.04
+		end,
 		ispercent = true,
 	},
-	-- Hit Avoidance Before DR - MELEE_HIT_AVOID_RATING
+	-- Hit Avoidance Before DR - DEFENSE_RATING, MELEE_HIT_AVOID_RATING
 	{
 		option = "sumHitAvoid",
 		name = "MELEE_HIT_AVOID",
@@ -3924,19 +4342,23 @@ local summaryCalcData = {
 				if (sumType == "diff1") or (sumType == "diff2") then
 					missed = StatLogic:GetAvoidanceGainAfterDR("MELEE_HIT_AVOID", missed)
 				elseif sumType == "sum" then
-					missed = StatLogic:GetAvoidanceGainAfterDR("MELEE_HIT_AVOID", equippedMissed + missed) - StatLogic:GetAvoidanceGainAfterDR("MELEE_HIT_AVOID", equippedMissed)
+					missed = StatLogic:GetAvoidanceGainAfterDR("MELEE_HIT_AVOID", equippedMissed + missed) -
+							StatLogic:GetAvoidanceGainAfterDR("MELEE_HIT_AVOID", equippedMissed)
 				end
 			end
 			return missed
 		end,
 		ispercent = true,
 	},
-	-- Crit Avoidance - RESILIENCE_RATING, MELEE_CRIT_AVOID_RATING
+	-- Crit Avoidance - DEFENSE_RATING, RESILIENCE_RATING, MELEE_CRIT_AVOID_RATING
 	{
 		option = "sumCritAvoid",
 		name = "MELEE_CRIT_AVOID",
-		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MELEE_CRIT_AVOID_RATING"] or 0), "MELEE_CRIT_AVOID_RATING", calcLevel)
-			 + StatLogic:GetEffectFromRating((sum["RESILIENCE_RATING"] or 0), "RESILIENCE_RATING", calcLevel) end,
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["MELEE_CRIT_AVOID_RATING"] or 0),
+				"MELEE_CRIT_AVOID_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["RESILIENCE_RATING"] or 0), "RESILIENCE_RATING", calcLevel)
+					+ StatLogic:GetEffectFromRating((sum["DEFENSE_RATING"] or 0), "DEFENSE_RATING", calcLevel) * 0.04
+		end,
 		ispercent = true,
 	},
 	-- Resilience - RESILIENCE_RATING
@@ -3974,6 +4396,13 @@ local summaryCalcData = {
 		option = "sumShadowResist",
 		name = "SHADOW_RES",
 		func = function(sum, sumType, link) return (sum["SHADOW_RES"] or 0) end,
+	},
+	-- Defense - DEFENSE_RATING
+	{
+		option = "sumDefense",
+		name = "DEFENSE",
+		func = function(sum, sumType, link) return StatLogic:GetEffectFromRating((sum["DEFENSE_RATING"] or 0), "DEFENSE_RATING"
+			, calcLevel) end,
 	},
 	-- Avoidance - DODGE, PARRY, MELEE_HIT_AVOID, BLOCK(Optional)
 	{
@@ -4026,9 +4455,11 @@ if tpSupport == true then
 			-- if not equipped shield and item is not shield then nil
 			-- if equipped shield and item is shield then nil
 			-- if equipped shield and item is not shield then force off
-			if ((diffTable1.diffItemType1 ~= "INVTYPE_SHIELD") and (diffTable1.diffItemType2 ~= "INVTYPE_SHIELD")) and (itemType == "INVTYPE_SHIELD") then
+			if ((diffTable1.diffItemType1 ~= "INVTYPE_SHIELD") and (diffTable1.diffItemType2 ~= "INVTYPE_SHIELD")) and
+					(itemType == "INVTYPE_SHIELD") then
 				forceShield = true
-			elseif ((diffTable1.diffItemType1 == "INVTYPE_SHIELD") or (diffTable1.diffItemType2 == "INVTYPE_SHIELD")) and (itemType ~= "INVTYPE_SHIELD") then
+			elseif ((diffTable1.diffItemType1 == "INVTYPE_SHIELD") or (diffTable1.diffItemType2 == "INVTYPE_SHIELD")) and
+					(itemType ~= "INVTYPE_SHIELD") then
 				forceShield = false
 			end
 			-- Get the tp table
@@ -4041,7 +4472,7 @@ if tpSupport == true then
 			TP:GetTankPoints(tpTable, TP_MELEE, forceShield)
 			-- Calculate tp difference
 			local diff = floor(tpTable.tankPoints[TP_MELEE]) - floor(TP.resultsTable.tankPoints[TP_MELEE])
-	
+
 			return diff
 		end,
 	})
@@ -4078,9 +4509,11 @@ if tpSupport == true then
 			-- if not equipped shield and item is not shield then nil
 			-- if equipped shield and item is shield then nil
 			-- if equipped shield and item is not shield then force off
-			if ((diffTable1.diffItemType1 ~= "INVTYPE_SHIELD") and (diffTable1.diffItemType2 ~= "INVTYPE_SHIELD")) and (itemType == "INVTYPE_SHIELD") then
+			if ((diffTable1.diffItemType1 ~= "INVTYPE_SHIELD") and (diffTable1.diffItemType2 ~= "INVTYPE_SHIELD")) and
+					(itemType == "INVTYPE_SHIELD") then
 				forceShield = true
-			elseif ((diffTable1.diffItemType1 == "INVTYPE_SHIELD") or (diffTable1.diffItemType2 == "INVTYPE_SHIELD")) and (itemType ~= "INVTYPE_SHIELD") then
+			elseif ((diffTable1.diffItemType1 == "INVTYPE_SHIELD") or (diffTable1.diffItemType2 == "INVTYPE_SHIELD")) and
+					(itemType ~= "INVTYPE_SHIELD") then
 				forceShield = false
 			end
 			-- Get the tp table
@@ -4093,7 +4526,7 @@ if tpSupport == true then
 			TP:GetTankPoints(tpTable, TP_MELEE, forceShield)
 			-- Calculate tp difference
 			local diff = tpTable.totalReduction[TP_MELEE] - TP.resultsTable.totalReduction[TP_MELEE]
-			
+
 			return diff * 100
 		end,
 	})
@@ -4165,7 +4598,7 @@ end
 function RatingBuster:StatSummary(tooltip, name, link, ...)
 	-- Hide stat summary for equipped items
 	if profileDB.sumIgnoreEquipped and IsEquippedItem(link) then return end
-	
+
 	-- Show stat summary only for highest level armor type and items you can use with uncommon quality and up
 	if profileDB.sumIgnoreUnused then
 		local _, _, itemRarity, _, _, _, itemSubType, _, itemEquipLoc = GetItemInfo(link)
@@ -4181,11 +4614,12 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 			return
 		elseif canUseItemType[itemSubType] == nil then
 			local tName = tooltip:GetName()
-			if (_G[tName.."TextRight3"]:GetText() and select(2, _G[tName.."TextRight3"]:GetTextColor()) < 0.2) or
-			(_G[tName.."TextRight4"]:GetText() and select(2, _G[tName.."TextRight4"]:GetTextColor()) < 0.2) or
-			(_G[tName.."TextRight5"]:GetText() and select(2, _G[tName.."TextRight5"]:GetTextColor()) < 0.2) or
-			select(2, _G[tName.."TextLeft3"]:GetTextColor()) < 0.2 or select(2, _G[tName.."TextLeft4"]:GetTextColor()) < 0.2 or
-			select(2, _G[tName.."TextLeft5"]:GetTextColor()) < 0.2 then
+			if (_G[tName .. "TextRight3"]:GetText() and select(2, _G[tName .. "TextRight3"]:GetTextColor()) < 0.2) or
+					(_G[tName .. "TextRight4"]:GetText() and select(2, _G[tName .. "TextRight4"]:GetTextColor()) < 0.2) or
+					(_G[tName .. "TextRight5"]:GetText() and select(2, _G[tName .. "TextRight5"]:GetTextColor()) < 0.2) or
+					select(2, _G[tName .. "TextLeft3"]:GetTextColor()) < 0.2 or select(2, _G[tName .. "TextLeft4"]:GetTextColor()) < 0.2
+					or
+					select(2, _G[tName .. "TextLeft5"]:GetTextColor()) < 0.2 then
 				canUseItemType[itemSubType] = false
 				return
 			else
@@ -4193,7 +4627,7 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 			end
 		end
 	end
-	
+
 	-- Ignore enchants and gems on items when calculating the stat summarythen
 	local red, yellow, blue, meta
 	if isModifierKeyDown[profileDB.sumGem2Toggle] and isModifierKeyDown[profileDB.sumGem2Toggle]() then
@@ -4212,7 +4646,7 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 		blue = profileDB.sumGemBlue.gemID
 		meta = profileDB.sumGemMeta.gemID
 	end
-	
+
 	if profileDB.sumIgnoreEnchant then
 		link = StatLogic:RemoveEnchant(link)
 	end
@@ -4224,7 +4658,7 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 	else
 		link = StatLogic:BuildGemmedTooltip(link, red, yellow, blue, meta)
 	end
-	
+
 	-- Diff Display Style
 	-- Main Tooltip: tooltipLevel = 0
 	-- Compare Tooltip 1: tooltipLevel = 1
@@ -4252,19 +4686,21 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 				end
 			end
 		end
-		local _, mainlink = StatLogic:GetDiffID(mainTooltip, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue, meta, profileDB.sumIgnorePris)
+		local _, mainlink = StatLogic:GetDiffID(mainTooltip, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow,
+			blue, meta, profileDB.sumIgnorePris)
 		if not mainlink then return end
 		-- Construct id
 		if tooltipLevel > 0 then
-			id = link..mainlink
+			id = link .. mainlink
 		else
-			id = "sum"..link
+			id = "sum" .. link
 		end
 	else
-		id = StatLogic:GetDiffID(link, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue, meta, profileDB.sumIgnorePris)
+		id = StatLogic:GetDiffID(link, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue, meta,
+			profileDB.sumIgnorePris)
 		if not id then return end
 	end
-	
+
 	-- Check Cache
 	if cache[id] then
 		if #cache[id] == 0 then return end
@@ -4273,15 +4709,15 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 			tooltip:AddLine(" ")
 		end
 		if profileDB.sumShowTitle then
-			tooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE..L["Stat Summary"]..FONT_COLOR_CODE_CLOSE)
+			tooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. L["Stat Summary"] .. FONT_COLOR_CODE_CLOSE)
 			if profileDB.sumShowIcon then
 				tooltip:AddTexture("Interface\\AddOns\\RatingBuster\\images\\Sigma")
 			end
 		end
 		-- local left, right = "", ""
 		-- for _, o in ipairs(cache[id]) do
-			-- left = left..o[1].."\n"
-			-- right = right..o[2].."\n"
+		-- left = left..o[1].."\n"
+		-- right = right..o[2].."\n"
 		-- end
 		-- left = strsub(left, 1, -3)
 		-- right = strsub(right, 1, -3)
@@ -4294,7 +4730,7 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 		end
 		return
 	end
-	
+
 	-------------------------
 	-- Build Summary Table --
 	local statData = {}
@@ -4303,18 +4739,21 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 	if not profileDB.calcSum then
 		statData.sum = nil
 	end
-	
+
 	-- Ignore bags
 	if not StatLogic:GetDiff(link) then return end
-	
+
 	-- Get Diff Data
 	if profileDB.calcDiff then
 		if profileDB.sumDiffStyle == "comp" then
 			if tooltipLevel > 0 then
-				statData.diff1 = select(tooltipLevel, StatLogic:GetDiff(mainTooltip, nil, nil, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue, meta, profileDB.sumIgnorePris))
+				statData.diff1 = select(tooltipLevel,
+					StatLogic:GetDiff(mainTooltip, nil, nil, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue,
+						meta, profileDB.sumIgnorePris))
 			end
 		else
-			statData.diff1, statData.diff2 = StatLogic:GetDiff(link, nil, nil, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems, red, yellow, blue, meta, profileDB.sumIgnorePris)
+			statData.diff1, statData.diff2 = StatLogic:GetDiff(link, nil, nil, profileDB.sumIgnoreEnchant, profileDB.sumIgnoreGems
+				, red, yellow, blue, meta, profileDB.sumIgnorePris)
 		end
 	end
 	-- Apply Base Stat Mods
@@ -4370,10 +4809,62 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 			tinsert(summary, entry)
 		end
 	end
-	
+
 	local calcSum = profileDB.calcSum
 	local calcDiff = profileDB.calcDiff
-	
+	-- Weapon Skill - WEAPON_RATING
+	if profileDB.sumWeaponSkill then
+		local weapon = {}
+		if calcSum then
+			for id, v in pairs(statData.sum) do
+				if strsub(id, -13) == "WEAPON_RATING" then
+					weapon[id] = true
+					local entry = {
+						name = strsub(id, 1, -8),
+					}
+					entry.sum = StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel)
+					if calcDiff and statData.diff1 then
+						entry.diff1 = StatLogic:GetEffectFromRating((statData.diff1[id] or 0), CR_WEAPON_SKILL, calcLevel)
+						if statData.diff2 then
+							entry.diff2 = StatLogic:GetEffectFromRating((statData.diff2[id] or 0), CR_WEAPON_SKILL, calcLevel)
+						end
+					end
+					tinsert(summary, entry)
+				end
+			end
+		end
+		if calcDiff and statData.diff1 then
+			for id, v in pairs(statData.diff1) do
+				if (strsub(id, -13) == "WEAPON_RATING") and not weapon[id] then
+					weapon[id] = true
+					local entry = {
+						name = strsub(id, 1, -8),
+						sum = 0,
+					}
+					entry.diff1 = StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel)
+					if statData.diff2 then
+						entry.diff2 = StatLogic:GetEffectFromRating((statData.diff2[id] or 0), CR_WEAPON_SKILL, calcLevel)
+					end
+					tinsert(summary, entry)
+				end
+			end
+			if statData.diff2 then
+				for id, v in pairs(statData.diff2) do
+					if (strsub(id, -13) == "WEAPON_RATING") and not weapon[id] then
+						weapon[id] = true
+						local entry = {
+							name = strsub(id, 1, -8),
+							sum = 0,
+							diff1 = 0,
+						}
+						entry.diff2 = StatLogic:GetEffectFromRating(v, CR_WEAPON_SKILL, calcLevel)
+						tinsert(summary, entry)
+					end
+				end
+			end
+		end
+	end
+
 	local showZeroValueStat = profileDB.showZeroValueStat
 	------------------------
 	-- Build Output Table --
@@ -4390,7 +4881,8 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 		end
 		if not skip then
 			if calcSum and calcDiff then
-				local d = ((not s) or ((s - floor(s)) == 0)) and ((not d1) or ((d1 - floor(d1)) == 0)) and ((not d2) or ((d2 - floor(d2)) == 0))
+				local d = ((not s) or ((s - floor(s)) == 0)) and ((not d1) or ((d1 - floor(d1)) == 0)) and
+						((not d2) or ((d2 - floor(d2)) == 0))
 				if s then
 					if d then
 						s = format("%d", s)
@@ -4496,7 +4988,7 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 				else
 					left = StatLogic:GetStatNameFromID(n)
 				end
-				tinsert(output, {left, right})
+				tinsert(output, { left, right })
 			end
 		end
 	end
@@ -4513,7 +5005,7 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 		tooltip:AddLine(" ")
 	end
 	if profileDB.sumShowTitle then
-		tooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE..L["Stat Summary"]..FONT_COLOR_CODE_CLOSE)
+		tooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. L["Stat Summary"] .. FONT_COLOR_CODE_CLOSE)
 		if profileDB.sumShowIcon then
 			tooltip:AddTexture("Interface\\AddOns\\RatingBuster\\images\\Sigma")
 		end
@@ -4525,7 +5017,6 @@ function RatingBuster:StatSummary(tooltip, name, link, ...)
 		tooltip:AddLine(" ")
 	end
 end
-
 
 -- RatingBuster:Bench(1000)
 ---------

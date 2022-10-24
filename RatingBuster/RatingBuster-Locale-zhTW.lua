@@ -1,6 +1,6 @@
 --[[
 Name: RatingBuster zhTW locale
-Revision: $Revision: 294 $
+Revision: $Revision: 282 $
 Translated by:
 - Whitetooth@Cenarius (hotdogee@bahamut.twbbs.org)
 - CuteMiyu
@@ -73,6 +73,12 @@ L["Show Physical Hit/Haste from Hit/Haste Rating"] = "顯示命中/加速給的�
 -- /rb rating detail
 L["Show Detailed Conversions Text"] = "顯示詳細轉換文字"
 L["Show detailed text for Resilience and Expertise conversions"] = "顯示韌性和熟練技能的詳細轉換文字"
+-- /rb rating def
+L["Defense Breakdown"] = "分析防禦"
+L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"] = "將防禦分為避免致命、避免命中、閃躲、招架和格擋"
+-- /rb rating wpn
+L["Weapon Skill Breakdown"] = "分析武器技能"
+L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"] = "將武器技能分為致命、擊中、防止被閃躲、防止被招架和防止被格擋"
 -- /rb rating exp
 L["Expertise Breakdown"] = "分析熟練技能"
 L["Convert Expertise into Dodge Neglect and Parry Neglect"] = "將熟練技能分為防止被閃躲、防止被招架"
@@ -323,12 +329,6 @@ L["Intellect Summary"] = "統計智力"
 -- /rb sum basic spi
 L["Sum Spirit"] = "統計精神"
 L["Spirit Summary"] = "統計精神"
--- /rb sum basic mastery
-L["Sum Mastery"] = "統計精通"
-L["Mastery Summary"] = "統計精通"
--- /rb sum basic masteryrating
-L["Sum Mastery Rating"] = "統計精通等級"
-L["Mastery Rating Summary"] = "統計精通等級"
 ---------------------------------------------------------------------------
 -- /rb sum physical
 L["Stat - Physical"] = "統計物理屬性"
@@ -344,13 +344,13 @@ L["Sum Feral Attack Power"] = "統計野性攻擊強度"
 L["Feral Attack Power <- Feral Attack Power, Attack Power, Strength, Agility"] = "野性攻擊強度 ← 野性攻擊強度、攻擊強度、力量、敏捷"
 -- /rb sum physical hit
 L["Sum Hit Chance"] = "統計命中機率"
---L["Hit Chance <- Hit Rating"] = "命中機率 ← 命中等級、武器技能等級"
+L["Hit Chance <- Hit Rating, Weapon Skill Rating"] = "命中機率 ← 命中等級、武器技能等級"
 -- /rb sum physical hitrating
 L["Sum Hit Rating"] = "統計命中等級"
 L["Hit Rating Summary"] = "統計命中等級"
 -- /rb sum physical crit
 L["Sum Crit Chance"] = "統計致命一擊機率"
---L["Crit Chance <- Crit Rating, Agility"] = "致命一擊機率 ← 致命一擊等級、敏捷、武器技能等級"
+L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"] = "致命一擊機率 ← 致命一擊等級、敏捷、武器技能等級"
 -- /rb sum physical critrating
 L["Sum Crit Rating"] = "統計致命等級"
 L["Crit Rating Summary"] = "統計致命等級"
@@ -362,13 +362,13 @@ L["Sum Haste Rating"] = "統計加速等級"
 L["Haste Rating Summary"] = "統計加速等級"
 -- /rb sum physical rangedhit
 L["Sum Ranged Hit Chance"] = "統計遠程命中機率"
---L["Ranged Hit Chance <- Hit Rating, Ranged Hit Rating"] = "遠程命中機率 ← 命中等級、武器技能等級、遠程命中等級"
+L["Ranged Hit Chance <- Hit Rating, Weapon Skill Rating, Ranged Hit Rating"] = "遠程命中機率 ← 命中等級、武器技能等級、遠程命中等級"
 -- /rb sum physical rangedhitrating
 L["Sum Ranged Hit Rating"] = "統計遠程命中等級"
 L["Ranged Hit Rating Summary"] = "統計遠程命中等級"
 -- /rb sum physical rangedcrit
 L["Sum Ranged Crit Chance"] = "統計遠程致命一級機率"
---L["Ranged Crit Chance <- Crit Rating, Agility, Ranged Crit Rating"] = "遠程致命一擊機率 ← 致命一擊等級、敏捷、武器技能等級、遠程致命一級等級"
+L["Ranged Crit Chance <- Crit Rating, Agility, Weapon Skill Rating, Ranged Crit Rating"] = "遠程致命一擊機率 ← 致命一擊等級、敏捷、武器技能等級、遠程致命一級等級"
 -- /rb sum physical rangedcritrating
 L["Sum Ranged Crit Rating"] = "統計遠程致命一級等級"
 L["Ranged Crit Rating Summary"] = "統計遠程致命一級等級"
@@ -381,6 +381,12 @@ L["Ranged Haste Rating Summary"] = "統計遠程加速等級"
 -- /rb sum physical maxdamage
 L["Sum Weapon Max Damage"] = "統計武器最大傷害"
 L["Weapon Max Damage Summary"] = "統計武器最大傷害"
+-- /rb sum physical ignorearmor
+L["Sum Ignore Armor"] = "統計無視護甲"
+L["Ignore Armor Summary"] = "統計無視護甲"
+-- /rb sum physical arp
+L["Sum Armor Penetration"] = "統計護甲穿透"
+L["Armor Penetration Summary"] = "統計無視護甲穿透"
 -- /rb sum physical weapondps
 --L["Sum Weapon DPS"] = true
 --L["Weapon DPS Summary"] = true
@@ -393,6 +399,9 @@ L["Expertise <- Expertise Rating"] = "熟練技能 ← 熟練等級"
 -- /rb sum physical exprating
 L["Sum Expertise Rating"] = "統計熟練等級"
 L["Expertise Rating Summary"] = "統計熟練等級"
+-- /rb sum physical arprating
+L["Sum Armor Penetration Rating"] = "統計無視護甲穿透等級"
+L["Armor Penetration Rating Summary"] = "統計無視護甲穿透等級"
 ---------------------------------------------------------------------------
 -- /rb sum spell
 L["Stat - Spell"] = "統計魔法屬性"
@@ -448,22 +457,34 @@ L["Stat - Tank"] = "統計坦克屬性"
 L["Choose tank stats for summary"] = "自訂坦克屬性統計項目"
 -- /rb sum tank armor
 L["Sum Armor"] = "統計護甲值"
---L["Armor <- Armor from items and bonuses"] = "護甲值 ← 物品護甲、護甲加成、敏捷、智力"
+L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"] = "護甲值 ← 物品護甲、護甲加成、敏捷、智力"
+-- /rb sum tank blockvalue
+L["Sum Block Value"] = "統計格擋值"
+L["Block Value <- Block Value, Strength"] = "格擋值 ← 格擋值、力量"
 -- /rb sum tank dodge
 L["Sum Dodge Chance"] = "統計閃躲機率"
---L["Dodge Chance <- Dodge Rating, Agility"] = "閃躲機率 ← 閃躲等級、敏捷、防禦等級"
+L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"] = "閃躲機率 ← 閃躲等級、敏捷、防禦等級"
 -- /rb sum tank parry
 L["Sum Parry Chance"] = "統計招架機率"
---L["Parry Chance <- Parry Rating"] = "招架機率 ← 招架等級、防禦等級"
+L["Parry Chance <- Parry Rating, Defense Rating"] = "招架機率 ← 招架等級、防禦等級"
 -- /rb sum tank block
 L["Sum Block Chance"] = "統計格擋機率"
---L["Block Chance <- Block Rating"] = "格擋機率 ← 格擋等級、防禦等級"
+L["Block Chance <- Block Rating, Defense Rating"] = "格擋機率 ← 格擋等級、防禦等級"
+-- /rb sum tank avoidhit
+L["Sum Hit Avoidance"] = "統計迴避命中"
+L["Hit Avoidance <- Defense Rating"] = "迴避命中 ← 防禦等級"
+-- /rb sum tank avoidcrit
+L["Sum Crit Avoidance"] = "統計迴避致命一擊"
+L["Crit Avoidance <- Defense Rating, Resilience"] = "迴避致命一擊 ← 防禦等級、韌性"
 -- /rb sum tank neglectdodge
 L["Sum Dodge Neglect"] = "統計防止被閃躲"
---L["Dodge Neglect <- Expertise"] = "防止被閃躲 ← 熟練技能、武器技能等級"
+L["Dodge Neglect <- Expertise, Weapon Skill Rating"] = "防止被閃躲 ← 熟練技能、武器技能等級"
 -- /rb sum stat neglectparry
 L["Sum Parry Neglect"] = "統計防止被招架"
---L["Parry Neglect <- Expertise"] = "防止被招架 ← 熟練技能、武器技能等級"
+L["Parry Neglect <- Expertise, Weapon Skill Rating"] = "防止被招架 ← 熟練技能、武器技能等級"
+-- /rb sum tank neglectblock
+L["Sum Block Neglect"] = "統計防止被格擋"
+L["Block Neglect <- Weapon Skill Rating"] = "防止被格擋 ← 武器技能等級"
 -- /rb sum tank resarcane
 L["Sum Arcane Resistance"] = "統計秘法抗性"
 L["Arcane Resistance Summary"] = "統計秘法抗性"
@@ -491,12 +512,15 @@ L["Block Rating Summary"] = "統計格檔等級"
 -- /rb sum tank res
 L["Sum Resilience"] = "統計韌性"
 L["Resilience Summary"] = "統計韌性"
+-- /rb sum tank def
+L["Sum Defense"] = "統計防禦"
+L["Defense <- Defense Rating"] = "防禦 ← 防禦等級"
 -- /rb sum tank tp
 L["Sum TankPoints"] = "統計坦克點"
 L["TankPoints <- Health, Total Reduction"] = "坦克點 ← 生命力、傷害減免總值"
 -- /rb sum tank tr
 L["Sum Total Reduction"] = "統計傷害減免總值"
---L["Total Reduction <- Armor, Dodge, Parry, Block, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "傷害減免總值 ← 護甲、閃躲、招架、格擋、格檔值、防禦、韌性、怪物未擊中、怪物致命、怪物輾壓、DamageTakenMods (?)"
+L["Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "傷害減免總值 ← 護甲、閃躲、招架、格擋、格檔值、防禦、韌性、怪物未擊中、怪物致命、怪物輾壓、DamageTakenMods (?)"
 -- /rb sum tank avoid
 L["Sum Avoidance"] = "統計傷害迴避"
 L["Avoidance <- Dodge, Parry, MobMiss, Block(Optional)"] = "傷害迴避 ← 閃躲、招架、怪物未擊中、格擋(選項)"

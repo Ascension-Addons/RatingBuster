@@ -1,6 +1,6 @@
 --[[
 Name: RatingBuster esES locale
-Revision: $Revision: 294 $
+Revision: $Revision: 282 $
 Translated by:
 - carahuevo@Curse
 - kaiemg
@@ -63,6 +63,12 @@ L["Show Rating conversions in tooltips"] = "Mostrar conversion de indices en too
 -- /rb rating detail
 L["Show Detailed Conversions Text"] = "Mostrar texto detallado conversiones"
 L["Show detailed text for Resilience and Expertise conversions"] = "Mostrar texto detallado de conversiones de Temple y Pericia"
+-- /rb rating def
+L["Defense Breakdown"] = "Desglose Defensa"
+L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"] = "Convierte Defensa en evitar Critico, evitar Golpe, Esquivar, Parar y Bloquear"
+-- /rb rating wpn
+L["Weapon Skill Breakdown"] = "Desglose Habilidad arma"
+L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"] = "Convierta Habilidad arma en Critico, Golpe, falla Esquivar, y fallo Bloquear"
 -- /rb rating exp -- 2.3.0
 L["Expertise Breakdown"] = "Desglose Pericia"
 L["Convert Expertise into Dodge Neglect and Parry Neglect"] = "Convierte Pericia en fallo Esquivar y fallo Parar"
@@ -297,15 +303,9 @@ L["Stamina Summary"] = "Resumen Aguante"
 -- /rb sum basic int
 L["Sum Intellect"] = "Res. Intelecto"
 L["Intellect Summary"] = "Resumen Intelecto"
--- /rb sum basic spi
+-- /rb sum statcomp spi
 L["Sum Spirit"] = "Res. Espiritu"
 L["Spirit Summary"] = "Resumen Espiritu"
--- /rb sum basic mastery
---L["Sum Mastery"] = ""
---L["Mastery Summary"] = ""
--- /rb sum basic masteryrating
---L["Sum Mastery Rating"] = ""
---L["Mastery Rating Summary"] = ""
 ----------------------------------------------------------------------------------------
 -- /rb sum physical
 L["Stat - Physical"] = "Datos - Fisicas"
@@ -321,13 +321,13 @@ L["Sum Feral Attack Power"] = "Res. P.Ataque feral"
 L["Feral Attack Power <- Feral Attack Power, Attack Power, Strength, Agility"] = "P.Ataque feral <- P.Ataque feral, P.Ataque, Fuerza, Agilidad"
 -- /rb sum physical hit
 L["Sum Hit Chance"] = "Res. prob. Golpe"
---L["Hit Chance <- Hit Rating"] = "prob. Golpe <- Indice Golpe, Indice pericia"
+L["Hit Chance <- Hit Rating, Weapon Skill Rating"] = "prob. Golpe <- Indice Golpe, Indice pericia"
 -- /rb sum physical hitrating
 L["Sum Hit Rating"] = "Res. Indice Golpe"
 L["Hit Rating Summary"] = "Resumen Indice Golpe"
 -- /rb sum physical crit
 L["Sum Crit Chance"] = "Res. Prob. Crit."
---L["Crit Chance <- Crit Rating, Agility"] = "Prob.Crit <- Crit, Agilidad, Indice Pericia"
+L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"] = "Prob.Crit <- Crit, Agilidad, Indice Pericia"
 -- /rb sum physical critrating
 L["Sum Crit Rating"] = "Res. Indice Critico"
 L["Crit Rating Summary"] = "Resumen Indice Critico"
@@ -339,13 +339,13 @@ L["Sum Haste Rating"] = "Res. Indice Celeridad"
 L["Haste Rating Summary"] = "Resumen Indice Celeridad"
 -- /rb sum physical rangedhit
 L["Sum Ranged Hit Chance"] = "Res. Prob. Golpe a Distancia"
--- --L["Ranged Hit Chance <- Hit Rating, Ranged Hit Rating"] = true
+-- L["Ranged Hit Chance <- Hit Rating, Weapon Skill Rating, Ranged Hit Rating"] = true
 -- /rb sum physical rangedhitrating
 L["Sum Ranged Hit Rating"] = "Res. Indice Golpe a Distancia"
 -- L["Ranged Hit Rating Summary"] = true
 -- /rb sum physical rangedcrit
 L["Sum Ranged Crit Chance"] = "Res. Prob. Critico a Distancia"
--- --L["Ranged Crit Chance <- Crit Rating, Agility, Ranged Crit Rating"] = true
+-- L["Ranged Crit Chance <- Crit Rating, Agility, Weapon Skill Rating, Ranged Crit Rating"] = true
 -- /rb sum physical rangedcritrating
 -- L["Sum Ranged Crit Rating"] = true
 -- L["Ranged Crit Rating Summary"] = true
@@ -358,6 +358,12 @@ L["Sum Ranged Crit Chance"] = "Res. Prob. Critico a Distancia"
 -- /rb sum physical maxdamage
 L["Sum Weapon Max Damage"] = "Res. Max Dano Arma"
 L["Weapon Max Damage Summary"] = "Resumen de Maximo Dano Arma"
+-- /rb sum physical ignorearmor
+L["Sum Ignore Armor"] = "Res. Ignorar armadura"
+L["Ignore Armor Summary"] = "Resumen de Ignorar Armadura"
+-- /rb sum physical arp
+L["Sum Armor Penetration"] = "Res. Penetracion Armadura"
+L["Armor Penetration Summary"] = "Resumen de Penetracion Armadura"
 -- /rb sum physical weapondps
 --L["Sum Weapon DPS"] = true
 --L["Weapon DPS Summary"] = true
@@ -370,6 +376,9 @@ L["Expertise <- Expertise Rating"] = "Pericia <- Indice Pericia"
 -- /rb sum physical exprating
 --L["Sum Expertise Rating"] = true
 --L["Expertise Rating Summary"] = true
+-- /rb sum physical arprating
+L["Sum Armor Penetration Rating"] = "Res. Indice Penetracion Armadura"
+L["Armor Penetration Rating Summary"] = "Resumen Indice Penetracion de Armadura"
 ----------------------------------------------------------------------------------------
 -- /rb sum spell
 L["Stat - Spell"] = "Datos - Hechizo"
@@ -425,22 +434,34 @@ L["Stat - Tank"] = "Datos - Tanque"
 L["Choose tank stats for summary"] = "Escoge datos de tanque para resumen"
 -- /rb sum tank armor
 L["Sum Armor"] = "Res. Armadura"
---L["Armor <- Armor from items and bonuses"] = "Armadura <- Armadura de items, Armadura de bonus, Agilidad, Intelecto"
+L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"] = "Armadura <- Armadura de items, Armadura de bonus, Agilidad, Intelecto"
+-- /rb sum tank blockvalue
+L["Sum Block Value"] = "Res. Valor Bloqueo"
+L["Block Value <- Block Value, Strength"] = "Valor Bloqueo <- Valor Bloqueo, Fuerza"
 -- /rb sum tank dodge
 L["Sum Dodge Chance"] = "Res. prob. Esquivar"
---L["Dodge Chance <- Dodge Rating, Agility"] = "Prob. Esquivar <- Indice Esquivar, Agilidad, Indice Defensa"
+L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"] = "Prob. Esquivar <- Indice Esquivar, Agilidad, Indice Defensa"
 -- /rb sum tank parry
 L["Sum Parry Chance"] = "Res. prob. Parar"
---L["Parry Chance <- Parry Rating"] = "Prob. Parar <- Indice Parar, Indice Defensa"
+L["Parry Chance <- Parry Rating, Defense Rating"] = "Prob. Parar <- Indice Parar, Indice Defensa"
 -- /rb sum tank block
 L["Sum Block Chance"] = "Res. prob Bloqueo"
---L["Block Chance <- Block Rating"] = "Prob. Bloqueo <- Indice Bloqueo, Indice Defensa"
+L["Block Chance <- Block Rating, Defense Rating"] = "Prob. Bloqueo <- Indice Bloqueo, Indice Defensa"
+-- /rb sum tank avoidhit
+L["Sum Hit Avoidance"] = "Res. Elusion golpe"
+L["Hit Avoidance <- Defense Rating"] = "Elusion golpe <- Indice Defensa"
+-- /rb sum tank avoidcrit
+L["Sum Crit Avoidance"] = "Res. Elusion Critico"
+L["Crit Avoidance <- Defense Rating, Resilience"] = "Elusion Critico <- Indice Defensa, Temple"
 -- /rb sum tank neglectdodge
 L["Sum Dodge Neglect"] = "Res. fallo Esquivar"
---L["Dodge Neglect <- Expertise"] = "Fallo Esquivar <- Pericia, Indice habilidad arma"
+L["Dodge Neglect <- Expertise, Weapon Skill Rating"] = "Fallo Esquivar <- Pericia, Indice habilidad arma"
 -- /rb sum tank neglectparry
 L["Sum Parry Neglect"] = "Res. fallo Parar"
---L["Parry Neglect <- Expertise"] = "Fallo Parar <- Pericia, Indice habilidad arma"
+L["Parry Neglect <- Expertise, Weapon Skill Rating"] = "Fallo Parar <- Pericia, Indice habilidad arma"
+-- /rb sum tank neglectblock
+L["Sum Block Neglect"] = "Res. fallo Bloquear"
+L["Block Neglect <- Weapon Skill Rating"] = "Fallo Bloquear <- Indice habilidad arma"
 -- /rb sum tank resarcane
 L["Sum Arcane Resistance"] = "Res. Resist. Arcana"
 L["Arcane Resistance Summary"] = "Resumen Resistencia Arcana"
@@ -468,12 +489,15 @@ L["Block Rating Summary"] = "Resumen Indice Bloquear"
 -- /rb sum tank res
 L["Sum Resilience"] = "Res. Temple"
 L["Resilience Summary"] = "Resumen Temple"
+-- /rb sum tank def
+L["Sum Defense"] = "Res. Defensa"
+L["Defense <- Defense Rating"] = "Defensa <- Indice Defensa"
 -- /rb sum tank tp
 L["Sum TankPoints"] = "Res. Ptos. Tanque"
 L["TankPoints <- Health, Total Reduction"] = "Ptos. Tanque <- Salud, Total Reduccion"
 -- /rb sum tank tr
 L["Sum Total Reduction"] = "Res. Total Reduccion"
---L["Total Reduction <- Armor, Dodge, Parry, Block, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "Total Reduccion <- Armadura, Esquivar, Parar, Bloquear, Valor bloqueo, Defensa, Temple, FalloEnemigo, CriticoEnemigo, AplastamientoEnemigo, Modifics.DanoRecibido"
+L["Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "Total Reduccion <- Armadura, Esquivar, Parar, Bloquear, Valor bloqueo, Defensa, Temple, FalloEnemigo, CriticoEnemigo, AplastamientoEnemigo, Modifics.DanoRecibido"
 -- /rb sum tank avoid
 L["Sum Avoidance"] = "Res. Elusion"
 L["Avoidance <- Dodge, Parry, MobMiss, Block(Optional)"] = "Elusion <- Esquivar, Parar, FalloEnemigo, Bloqueo(Opcional)"

@@ -1,6 +1,6 @@
 --[[
 Name: RatingBuster koKR locale
-Revision: $Revision: 294 $
+Revision: $Revision: 282 $
 Translated by:
 - Slowhand, 7destiny, kcgcom, fenlis
 ]]
@@ -62,14 +62,20 @@ L["Options for Rating display"] = "전투 숙련도 표시에 대한 설정입�
 L["Show Rating Conversions"] = "전투 숙련도 계산 표시"
 L["Show Rating conversions in tooltips"] = "툴팁에 전투 숙련도를 전투 능력치로 계산하여 표시합니다."
 -- /rb rating spell
-L["Show Spell Hit/Haste"] = "주문 적중/가속 표시"
-L["Show Spell Hit/Haste from Hit/Haste Rating"] = "주문의 적중/가속을 표시합니다."
+--L["Show Spell Hit/Haste"] = true
+--L["Show Spell Hit/Haste from Hit/Haste Rating"] = true
 -- /rb rating physical
-L["Show Physical Hit/Haste"] = "물리 적중/가속 표시"
-L["Show Physical Hit/Haste from Hit/Haste Rating"] = "물리 적중/가속을 표시합니다."
+--L["Show Physical Hit/Haste"] = true
+--L["Show Physical Hit/Haste from Hit/Haste Rating"] = true
 -- /rb rating detail
 L["Show Detailed Conversions Text"] = "세부적인 전투 숙련도 계산 표시"
 L["Show detailed text for Resilience and Expertise conversions"] = "탄력도와 숙련을 세부적인 전투 능력치로 계산해서 표시합니다."
+-- /rb rating def
+L["Defense Breakdown"] = "방어 숙련 세분화"
+L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"] = "방어 숙련을 치명타 감소, 빗맞힘, 회피, 무기 막기, 방패 막기로 계산해서 표시합니다."
+-- /rb rating wpn
+L["Weapon Skill Breakdown"] = "무기 숙련 세분화"
+L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"] = "무기 숙련을 치명타, 적중, 회피 무시, 무기 막기 무시, 방패막기 무시로 계산해서 표시합니다."
 -- /rb rating exp
 L["Expertise Breakdown"] = "숙련 세분화"
 L["Convert Expertise into Dodge Neglect and Parry Neglect"] = "숙련을 회피 무시와 무기 막기 무시로 계산해서 표시합니다."
@@ -320,12 +326,6 @@ L["Intellect Summary"] = "지능 요약"
 -- /rb sum basic spi
 L["Sum Spirit"] = "정신력 합계"
 L["Spirit Summary"] = "정신력 요약"
--- /rb sum basic mastery
---L["Sum Mastery"] = ""
---L["Mastery Summary"] = ""
--- /rb sum basic masteryrating
---L["Sum Mastery Rating"] = ""
---L["Mastery Rating Summary"] = ""
 ---------------------------------------------------------------------------
 -- /rb sum physical
 L["Stat - Physical"] = "능력치 - 물리"
@@ -341,13 +341,13 @@ L["Sum Feral Attack Power"] = "야성 전투력 합계"
 L["Feral Attack Power <- Feral Attack Power, Attack Power, Strength, Agility"] = "야성 전투력 <- 야성 전투력, 전투력, 힘, 민첩성"
 -- /rb sum physical hit
 L["Sum Hit Chance"] = "적중률 합계"
---L["Hit Chance <- Hit Rating"] = "적중률 <- 적중도, 무기 숙련도"
+L["Hit Chance <- Hit Rating, Weapon Skill Rating"] = "적중률 <- 적중도, 무기 숙련도"
 -- /rb sum physical hitrating
 L["Sum Hit Rating"] = "적중도 합계"
 L["Hit Rating Summary"] = "적중도 요약"
 -- /rb sum physical crit
 L["Sum Crit Chance"] = "치명타율 합계"
---L["Crit Chance <- Crit Rating, Agility"] = "치명타율 <- 치명타 적중도, 민첩성, 무기 숙련도"
+L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"] = "치명타율 <- 치명타 적중도, 민첩성, 무기 숙련도"
 -- /rb sum physical critrating
 L["Sum Crit Rating"] = "치명타 적중도 합계"
 L["Crit Rating Summary"] = "치명타 적중도 요약"
@@ -359,13 +359,13 @@ L["Sum Haste Rating"] = "공격 가속도 합계"
 L["Haste Rating Summary"] = "공격 가속도 요약"
 -- /rb sum physical rangedhit
 L["Sum Ranged Hit Chance"] = "원거리 적중률 합계"
---L["Ranged Hit Chance <- Hit Rating, Ranged Hit Rating"] = "원거리 적중률 <- 적중도, 무기 숙련도, 원거리 적중도"
+L["Ranged Hit Chance <- Hit Rating, Weapon Skill Rating, Ranged Hit Rating"] = "원거리 적중률 <- 적중도, 무기 숙련도, 원거리 적중도"
 -- /rb sum physical rangedhitrating
 L["Sum Ranged Hit Rating"] = "원거리 적중도 합계"
 L["Ranged Hit Rating Summary"] = "원거리 적중도 요약"
 -- /rb sum physical rangedcrit
 L["Sum Ranged Crit Chance"] = "원거리 치명타율 합계"
---L["Ranged Crit Chance <- Crit Rating, Agility, Ranged Crit Rating"] = "원거리 치명타율 <- 치명타 적중도, 민첩성, 무기 숙련도, 치명타 적중도"
+L["Ranged Crit Chance <- Crit Rating, Agility, Weapon Skill Rating, Ranged Crit Rating"] = "원거리 치명타율 <- 치명타 적중도, 민첩성, 무기 숙련도, 치명타 적중도"
 -- /rb sum physical rangedcritrating
 L["Sum Ranged Crit Rating"] = "원거리 치명타 적중도 합계"
 L["Ranged Crit Rating Summary"] = "원거리 치명타 적중도 요약"
@@ -378,6 +378,12 @@ L["Ranged Haste Rating Summary"] = "원거리 공격 가속도 요약"
 -- /rb sum physical maxdamage
 L["Sum Weapon Max Damage"] = "무기 최대 공격력 합계"
 L["Weapon Max Damage Summary"] = "무기 최대 공격력 요약"
+-- /rb sum physical ignorearmor
+L["Sum Ignore Armor"] = "방어도 무시 합계"
+L["Ignore Armor Summary"] = "방어도 무시 요약"
+-- /rb sum physical arp
+L["Sum Armor Penetration"] = "방어도 관통력 합계"
+L["Armor Penetration Summary"] = "방어도 관통력 요약"
 -- /rb sum physical weapondps
 --L["Sum Weapon DPS"] = true
 --L["Weapon DPS Summary"] = true
@@ -390,6 +396,9 @@ L["Expertise <- Expertise Rating"] = "숙련 <- 숙련도"
 -- /rb sum physical exprating
 --L["Sum Expertise Rating"] = true
 --L["Expertise Rating Summary"] = true
+-- /rb sum physical arprating
+L["Sum Armor Penetration Rating"] = "방어도 관통도 합계"
+L["Armor Penetration Rating Summary"] = "방어도 관통도 요약"
 ---------------------------------------------------------------------------
 -- /rb sum spell
 L["Stat - Spell"] = "능력치 - 주문"
@@ -445,22 +454,34 @@ L["Stat - Tank"] = "능력치 - 방어"
 L["Choose tank stats for summary"] = "방어 능력치를 선택합니다."
 -- /rb sum tank armor
 L["Sum Armor"] = "방어도 합계"
---L["Armor <- Armor from items and bonuses"] = "방어도 <- 아이템 방어도, 방어도 보너스, 민첩성, 지능"
+L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"] = "방어도 <- 아이템 방어도, 방어도 보너스, 민첩성, 지능"
+-- /rb sum tank blockvalue
+L["Sum Block Value"] = "피해 방어량 합계"
+L["Block Value <- Block Value, Strength"] = "피해 방어량 <- 피해 방어량, 힘"
 -- /rb sum tank dodge
 L["Sum Dodge Chance"] = "회피율 합계"
---L["Dodge Chance <- Dodge Rating, Agility"] = "회피율 <- 회피 숙련도, 민첩성, 방어 숙련도"
+L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"] = "회피율 <- 회피 숙련도, 민첩성, 방어 숙련도"
 -- /rb sum tank parry
 L["Sum Parry Chance"] = "무기 막기 확률 합계"
---L["Parry Chance <- Parry Rating"] = "무기 막기 확률 <- 무기 막기 숙련도, 방어 숙련도"
+L["Parry Chance <- Parry Rating, Defense Rating"] = "무기 막기 확률 <- 무기 막기 숙련도, 방어 숙련도"
 -- /rb sum tank block
 L["Sum Block Chance"] = "방패 막기 확률 합계"
---L["Block Chance <- Block Rating"] = "방패 막기 확률 <- 방패 막기 숙련도, 방어 숙련도"
+L["Block Chance <- Block Rating, Defense Rating"] = "방패 막기 확률 <- 방패 막기 숙련도, 방어 숙련도"
+-- /rb sum tank avoidhit
+L["Sum Hit Avoidance"] = "빗맞힘 합계"
+L["Hit Avoidance <- Defense Rating"] = "빗맞힘 <- 방어 숙련도"
+-- /rb sum tank avoidcrit
+L["Sum Crit Avoidance"] = "치명타 감소 합계"
+L["Crit Avoidance <- Defense Rating, Resilience"] = "치명타 감소 <- 방어 숙련도, 탄력도"
 -- /rb sum tank neglectdodge
 L["Sum Dodge Neglect"] = "회피 무시 합계"
---L["Dodge Neglect <- Expertise"] = "회피 무시 <- 숙련도, 무기 숙련도"
+L["Dodge Neglect <- Expertise, Weapon Skill Rating"] = "회피 무시 <- 숙련도, 무기 숙련도"
 -- /rb sum tank neglectparry
 L["Sum Parry Neglect"] = "무기 막기 무시 합계"
---L["Parry Neglect <- Expertise"] = "무기 막기 무시 <- 숙련도, 무기 숙련도"
+L["Parry Neglect <- Expertise, Weapon Skill Rating"] = "무기 막기 무시 <- 숙련도, 무기 숙련도"
+-- /rb sum tank neglectblock
+L["Sum Block Neglect"] = "방패 막기 무시 합계"
+L["Block Neglect <- Weapon Skill Rating"] = "방패 막기 무시 <- 무기 숙련도"
 -- /rb sum tank resarcane
 L["Sum Arcane Resistance"] = "비전 저항력 합계"
 L["Arcane Resistance Summary"] = "비전 저항력 요약"
@@ -488,12 +509,15 @@ L["Block Rating Summary"] = "방어 막기 숙련도 요약"
 -- /rb sum tank res
 L["Sum Resilience"] = "탄력 합계"
 L["Resilience Summary"] = "탄력 요약"
+-- /rb sum tank def
+L["Sum Defense"] = "방어 숙련 합계"
+L["Defense <- Defense Rating"] = "방어 숙련 <- 방어 숙련도"
 -- /rb sum tank tp
 L["Sum TankPoints"] = "탱킹 점수 (TankPoint) 합계"
 L["TankPoints <- Health, Total Reduction"] = "탱킹 점수 (TankPoint) <- 생명력, 총 피해감소"
 -- /rb sum tank tr
 L["Sum Total Reduction"] = "총 피해감소 합계"
---L["Total Reduction <- Armor, Dodge, Parry, Block, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "총 피해감소 <- 방어도, 회피, 무기 막기, 방패 막기, 피해 방어량, 방어 숙련, 탄력, 빗맞힘(자신), 치명타 감소, 몹강타, 피해감소 효과"
+L["Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "총 피해감소 <- 방어도, 회피, 무기 막기, 방패 막기, 피해 방어량, 방어 숙련, 탄력, 빗맞힘(자신), 치명타 감소, 몹강타, 피해감소 효과"
 -- /rb sum tank avoid
 L["Sum Avoidance"] = "총 방어행동 합계"
 L["Avoidance <- Dodge, Parry, MobMiss, Block(Optional)"] = "방어행동 (Avoidance) <- 회피, 무기 막기, 빗맞힘, 방패 막기(선택적)"

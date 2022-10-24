@@ -1,6 +1,6 @@
 --[[
 Name: RatingBuster enUS locale
-Revision: $Revision: 294 $
+Revision: $Revision: 282 $
 Translated by:
 - Whitetooth (hotdogee [at] gmail [dot] com)
 ]]
@@ -70,6 +70,12 @@ L["Show Physical Hit/Haste from Hit/Haste Rating"] = true
 -- /rb rating detail
 L["Show Detailed Conversions Text"] = true
 L["Show detailed text for Resilience and Expertise conversions"] = true
+-- /rb rating def
+L["Defense Breakdown"] = true
+L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"] = true
+-- /rb rating wpn
+L["Weapon Skill Breakdown"] = true
+L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"] = true
 -- /rb rating exp
 L["Expertise Breakdown"] = true
 L["Convert Expertise into Dodge Neglect and Parry Neglect"] = true
@@ -100,6 +106,12 @@ L["Show Attack Power from Strength"] = true
 -- /rb stat str block
 L["Show Block Value"] = true
 L["Show Block Value from Strength"] = true
+-- /rb Ascension Custom Conviction
+L["Show Conviction"] = true
+L["Show Spell Crit from Strength"] = true
+-- /rb Ascension Custom Divine Strenth
+L["Show Divine Strength"] = true
+L["Show Hit Rating from Strength"] = true
 -- /rb stat str dmg
 L["Show Spell Damage"] = true
 L["Show Spell Damage from Strength"] = true
@@ -109,6 +121,9 @@ L["Show Healing from Strength"] = true
 -- /rb stat str parry
 L["Show Parry"] = true
 L["Show Parry from Strength"] = true
+-- /rb Ascension Custom Iron Will
+L["Show Iron Will"] = true
+L["Show Parry Rating from Strength"] = true
 ---------------------------------------------------------------------------
 -- /rb stat agi
 L["Agility"] = true
@@ -131,6 +146,16 @@ L["Show Armor from Agility"] = true
 -- /rb stat agi heal
 L["Show Healing"] = true
 L["Show Healing from Agility"] = true
+-- /rb Ascension Custom Thundering Strikes
+L["Show Thundering Strikes"] = true
+L["Show Spell Crit from Agility"] = true
+-- /rb Ascension Custom Shamanistic Focus/Combat Experience
+L["Show Shamanistic Focus"] = true
+L["Show Combat Experience"] = true
+L["Show Spell Hit from Agility"] = true
+-- /rb Ascension Custom Natural Reaction
+L["Show Natural Reaction"] = true
+L["Show Dodge from Natural Reaction"] = true
 ---------------------------------------------------------------------------
 -- /rb stat sta
 L["Stamina"] = true
@@ -146,6 +171,9 @@ L["Show Healing"] = true
 L["Show Healing from Stamina"] = true
 -- /rb stat sta ap
 L["Show Attack Power"] = true
+L["Show Attack Power from Stamina"] = true
+-- /rb Ascension Custom Hunter VS Wild
+L["Show Hunter vs. Wild"] = true
 L["Show Attack Power from Stamina"] = true
 ---------------------------------------------------------------------------
 -- /rb stat int
@@ -200,6 +228,11 @@ L["Show Healing from Spirit"] = true
 -- /rb stat spi spellcrit
 L["Show Spell Crit"] = true
 L["Show Spell Crit chance from Spirit"] = true
+--/rb Ascension Custom Spirit Spell crit
+L["Show Meditation"] = true
+L["Show Molten Armor"] = true
+L["Show Improved Spirit Tap"] = true
+L["Show Crit Rating from Spirit"] = true
 ---------------------------------------------------------------------------
 -- /rb stat armor
 L["Armor"] = true
@@ -320,12 +353,6 @@ L["Intellect Summary"] = true
 -- /rb sum basic spi
 L["Sum Spirit"] = true
 L["Spirit Summary"] = true
--- /rb sum basic mastery
-L["Sum Mastery"] = true
-L["Mastery Summary"] = true
--- /rb sum basic masteryrating
-L["Sum Mastery Rating"] = true
-L["Mastery Rating Summary"] = true
 ---------------------------------------------------------------------------
 -- /rb sum physical
 L["Stat - Physical"] = true
@@ -341,13 +368,13 @@ L["Sum Feral Attack Power"] = true
 L["Feral Attack Power <- Feral Attack Power, Attack Power, Strength, Agility"] = true
 -- /rb sum physical hit
 L["Sum Hit Chance"] = true
-L["Hit Chance <- Hit Rating"] = true
+L["Hit Chance <- Hit Rating, Weapon Skill Rating"] = true
 -- /rb sum physical hitrating
 L["Sum Hit Rating"] = true
 L["Hit Rating Summary"] = true
 -- /rb sum physical crit
 L["Sum Crit Chance"] = true
-L["Crit Chance <- Crit Rating, Agility"] = true
+L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"] = true
 -- /rb sum physical critrating
 L["Sum Crit Rating"] = true
 L["Crit Rating Summary"] = true
@@ -359,13 +386,13 @@ L["Sum Haste Rating"] = true
 L["Haste Rating Summary"] = true
 -- /rb sum physical rangedhit
 L["Sum Ranged Hit Chance"] = true
-L["Ranged Hit Chance <- Hit Rating, Ranged Hit Rating"] = true
+L["Ranged Hit Chance <- Hit Rating, Weapon Skill Rating, Ranged Hit Rating"] = true
 -- /rb sum physical rangedhitrating
 L["Sum Ranged Hit Rating"] = true
 L["Ranged Hit Rating Summary"] = true
 -- /rb sum physical rangedcrit
 L["Sum Ranged Crit Chance"] = true
-L["Ranged Crit Chance <- Crit Rating, Agility, Ranged Crit Rating"] = true
+L["Ranged Crit Chance <- Crit Rating, Agility, Weapon Skill Rating, Ranged Crit Rating"] = true
 -- /rb sum physical rangedcritrating
 L["Sum Ranged Crit Rating"] = true
 L["Ranged Crit Rating Summary"] = true
@@ -378,6 +405,12 @@ L["Ranged Haste Rating Summary"] = true
 -- /rb sum physical maxdamage
 L["Sum Weapon Max Damage"] = true
 L["Weapon Max Damage Summary"] = true
+-- /rb sum physical ignorearmor
+L["Sum Ignore Armor"] = true
+L["Ignore Armor Summary"] = true
+-- /rb sum physical arp
+L["Sum Armor Penetration"] = true
+L["Armor Penetration Summary"] = true
 -- /rb sum physical weapondps
 --L["Sum Weapon DPS"] = true
 --L["Weapon DPS Summary"] = true
@@ -390,6 +423,9 @@ L["Expertise <- Expertise Rating"] = true
 -- /rb sum physical exprating
 L["Sum Expertise Rating"] = true
 L["Expertise Rating Summary"] = true
+-- /rb sum physical arprating
+L["Sum Armor Penetration Rating"] = true
+L["Armor Penetration Rating Summary"] = true
 ---------------------------------------------------------------------------
 -- /rb sum spell
 L["Stat - Spell"] = true
@@ -445,22 +481,34 @@ L["Stat - Tank"] = true
 L["Choose tank stats for summary"] = true
 -- /rb sum tank armor
 L["Sum Armor"] = true
-L["Armor <- Armor from items and bonuses"] = true
+L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"] = true
+-- /rb sum tank blockvalue
+L["Sum Block Value"] = true
+L["Block Value <- Block Value, Strength"] = true
 -- /rb sum tank dodge
 L["Sum Dodge Chance"] = true
-L["Dodge Chance <- Dodge Rating, Agility"] = true
+L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"] = true
 -- /rb sum tank parry
 L["Sum Parry Chance"] = true
-L["Parry Chance <- Parry Rating"] = true
+L["Parry Chance <- Parry Rating, Defense Rating"] = true
 -- /rb sum tank block
 L["Sum Block Chance"] = true
-L["Block Chance <- Block Rating"] = true
+L["Block Chance <- Block Rating, Defense Rating"] = true
+-- /rb sum tank avoidhit
+L["Sum Hit Avoidance"] = true
+L["Hit Avoidance <- Defense Rating"] = true
+-- /rb sum tank avoidcrit
+L["Sum Crit Avoidance"] = true
+L["Crit Avoidance <- Defense Rating, Resilience"] = true
 -- /rb sum tank neglectdodge
 L["Sum Dodge Neglect"] = true
-L["Dodge Neglect <- Expertise"] = true
+L["Dodge Neglect <- Expertise, Weapon Skill Rating"] = true
 -- /rb sum tank neglectparry
 L["Sum Parry Neglect"] = true
-L["Parry Neglect <- Expertise"] = true
+L["Parry Neglect <- Expertise, Weapon Skill Rating"] = true
+-- /rb sum tank neglectblock
+L["Sum Block Neglect"] = true
+L["Block Neglect <- Weapon Skill Rating"] = true
 -- /rb sum tank resarcane
 L["Sum Arcane Resistance"] = true
 L["Arcane Resistance Summary"] = true
@@ -488,12 +536,15 @@ L["Block Rating Summary"] = true
 -- /rb sum tank res
 L["Sum Resilience"] = true
 L["Resilience Summary"] = true
+-- /rb sum tank def
+L["Sum Defense"] = true
+L["Defense <- Defense Rating"] = true
 -- /rb sum tank tp
 L["Sum TankPoints"] = true
 L["TankPoints <- Health, Total Reduction"] = true
 -- /rb sum tank tr
 L["Sum Total Reduction"] = true
-L["Total Reduction <- Armor, Dodge, Parry, Block, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = true
+L["Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = true
 -- /rb sum tank avoid
 L["Sum Avoidance"] = true
 L["Avoidance <- Dodge, Parry, MobMiss, Block(Optional)"] = true
@@ -658,6 +709,7 @@ L["statList"] = {
 	{pattern = "spell hit rating", id = CR_HIT_SPELL},
 	{pattern = "ranged hit rating", id = CR_HIT_RANGED},
 	{pattern = "hit rating", id = CR_HIT_MELEE},
+	
 
 	{pattern = "resilience", id = CR_CRIT_TAKEN_MELEE}, -- resilience is implicitly a rating
 
@@ -671,7 +723,6 @@ L["statList"] = {
 
 	{pattern = "hit avoidance rating", id = CR_HIT_TAKEN_MELEE},
 	{pattern = "armor penetration rating", id = CR_ARMOR_PENETRATION},
-	{pattern = "mastery rating", id = CR_MASTERY},
 	{pattern = string.lower(ARMOR), id = ARMOR},
 	--[[
 	{pattern = "dagger skill rating", id = CR_WEAPON_SKILL},
@@ -698,6 +749,8 @@ L["statList"] = {
 -- EX: "Crit $value%" -> "Crit +1.34%"
 L["$value% Crit"] = true
 L["$value% Spell Crit"] = true
+L["$value% Melee Hit"] = true
+L["$value% Spell Hit"] = true
 L["$value% Dodge"] = true
 L["$value HP"] = true
 L["$value MP"] = true

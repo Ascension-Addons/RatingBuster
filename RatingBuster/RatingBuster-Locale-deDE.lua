@@ -1,6 +1,6 @@
 --[[
 Name: RatingBuster deDE locale
-Revision: $Revision: 295 $
+Revision: $Revision: 282 $
 Translated by:
 - Kuja
 ]]
@@ -62,14 +62,20 @@ L["Options for Rating display"] = "Optionen für die Wertungsanzeige"
 L["Show Rating Conversions"] = "Zeige Wertungsumrechnung"
 L["Show Rating conversions in tooltips"] = "Zeige Wertungsumrechnung im Tooltip"
 -- /rb rating spell
-L["Show Spell Hit/Haste"] = "Zeige Zaubertempo/-trefferchance"
-L["Show Spell Hit/Haste from Hit/Haste Rating"] = "Zeige Zaubertempo/-trefferchance von Tempo-/Trefferwertung"
+--L["Show Spell Hit/Haste"] = true
+--L["Show Spell Hit/Haste from Hit/Haste Rating"] = true
 -- /rb rating physical
-L["Show Physical Hit/Haste"] = "Zeige physisches Tempo/Trefferchance"
-L["Show Physical Hit/Haste from Hit/Haste Rating"] = "Zeige physisches Tempo/Trefferchance von Tempo-/Trefferwertung"
+--L["Show Physical Hit/Haste"] = true
+--L["Show Physical Hit/Haste from Hit/Haste Rating"] = true
 -- /rb rating detail
 L["Show Detailed Conversions Text"] = "Zeige detaillierten Umrechnungtext"
 L["Show detailed text for Resilience and Expertise conversions"] = "Zeige detaillierten Text für Abhärtungs- und Waffenkundeumrechnung"
+-- /rb rating def
+L["Defense Breakdown"] = "Verteidigungsanalyse"
+L["Convert Defense into Crit Avoidance, Hit Avoidance, Dodge, Parry and Block"] = "Wandle Verteidigung in Vermeidung von (kritischen) Treffern, Ausweichen, Parieren und Blocken um"
+-- /rb rating wpn
+L["Weapon Skill Breakdown"] = "Waffenfertigkeitswertungsanalyse"
+L["Convert Weapon Skill into Crit, Hit, Dodge Neglect, Parry Neglect and Block Neglect"] = "Wandle Waffenfertigkeitswertung in (kritische) Trefferchance, Ausweich-, Parier- und Blockmissachtung um"
 -- /rb rating exp
 L["Expertise Breakdown"] = "Waffenkundeanalyse"
 L["Convert Expertise into Dodge Neglect and Parry Neglect"] = "Wandle Waffenkunde in Ausweich- und Pariermissachtung um"
@@ -320,12 +326,6 @@ L["Intellect Summary"] = "Intelligenzübersicht"
 -- /rb sum basic spi
 L["Sum Spirit"] = "Willenskraft zusammenrechnen"
 L["Spirit Summary"] = "Willenkraftübersicht"
--- /rb sum basic mastery
-L["Sum Mastery"] = "Meisterschaft zusammenrechnen"
-L["Mastery Summary"] = "Meisterschaftsübersicht"
--- /rb sum basic masteryrating
-L["Sum Mastery Rating"] = "Meisterschaftswertung zusammenrechnen"
-L["Mastery Rating Summary"] = "Meisterschaftswertungsübersicht"
 ---------------------------------------------------------------------------
 -- /rb sum physical
 L["Stat - Physical"] = "Werte - Physisch"
@@ -341,13 +341,13 @@ L["Sum Feral Attack Power"] = "Feral Angriffskraft zusammenrechnen"
 L["Feral Attack Power <- Feral Attack Power, Attack Power, Strength, Agility"] = "Feral Angriffskraft <- Feral Angriffskraft, Angriffskraft, Stärke, Beweglichkeit"
 -- /rb sum physical hit
 L["Sum Hit Chance"] = "Trefferchance zusammenrechnen"
-L["Hit Chance <- Hit Rating"] = "Trefferchance <- Trefferwertung"
+L["Hit Chance <- Hit Rating, Weapon Skill Rating"] = "Trefferchance <- Trefferwertung, Waffenfertigkeitswertung"
 -- /rb sum physical hitrating
 L["Sum Hit Rating"] = "Trefferwertung zusammenrechnen"
 L["Hit Rating Summary"] = "Trefferwertungsübersicht"
 -- /rb sum physical crit
 L["Sum Crit Chance"] = "Kritische Trefferchance zusammenrechnen"
-L["Crit Chance <- Crit Rating, Agility"] = "Kritische Trefferchance <- kritische Trefferwertung, Beweglichkeit"
+L["Crit Chance <- Crit Rating, Agility, Weapon Skill Rating"] = "Kritische Trefferchance <- kritische Trefferwertung, Beweglichkeit, Waffenfertigkeitswertung"
 -- /rb sum physical critrating
 L["Sum Crit Rating"] = "Kritische Trefferwertung zusammenrechnen"
 L["Crit Rating Summary"] = "Kritische Trefferwertungsübersicht"
@@ -359,13 +359,13 @@ L["Sum Haste Rating"] = "Tempowertung zusammenrechnen"
 L["Haste Rating Summary"] = "Tempowertungsübersicht"
 -- /rb sum physical rangedhit
 L["Sum Ranged Hit Chance"] = "Distanztrefferchance zusammenrechnen"
-L["Ranged Hit Chance <- Hit Rating, Ranged Hit Rating"] = "Distanztrefferchance <- Trefferwertung, Distanztrefferwertung"
+L["Ranged Hit Chance <- Hit Rating, Weapon Skill Rating, Ranged Hit Rating"] = "Distanztrefferchance <- Trefferwertung, Waffenfertigkeitswertung, Distanztrefferwertung"
 -- /rb sum physical rangedhitrating
 L["Sum Ranged Hit Rating"] = "Distanztrefferwertung zusammenrechnen"
 L["Ranged Hit Rating Summary"] = "Distanztrefferwertungsübersicht"
 -- /rb sum physical rangedcrit
 L["Sum Ranged Crit Chance"] = "Kritische Distanztrefferchance zusammenrechnen"
-L["Ranged Crit Chance <- Crit Rating, Agility, Ranged Crit Rating"] = "Kritische Distanztrefferchance <- kritische Trefferwertung, Beweglichkeit, kritische Distanztrefferwertung"
+L["Ranged Crit Chance <- Crit Rating, Agility, Weapon Skill Rating, Ranged Crit Rating"] = "Kritische Distanztrefferchance <- kritische Trefferwertung, Beweglichkeit, Waffenfertigkeitswertung, kritische Distanztrefferwertung"
 -- /rb sum physical rangedcritrating
 L["Sum Ranged Crit Rating"] = "Kritische Distanztrefferwertung zusammenrechnen"
 L["Ranged Crit Rating Summary"] = "Kritische Distanztrefferwertungsübersicht"
@@ -378,6 +378,12 @@ L["Ranged Haste Rating Summary"] = "Distanztempowertungsübersicht"
 -- /rb sum physical maxdamage
 L["Sum Weapon Max Damage"] = "Waffenmaximalschaden zusammenrechnen"
 L["Weapon Max Damage Summary"] = "Waffenmaximalschadensübersicht"
+-- /rb sum physical ignorearmor
+L["Sum Ignore Armor"] = "Rüstungsmissachtung zusammenrechnen"
+L["Ignore Armor Summary"] = "Rüstungsmissachtungsübersicht"
+-- /rb sum physical arp
+L["Sum Armor Penetration"] = "Rüstungsdurchlag zusammenrechnen"
+L["Armor Penetration Summary"] = "Rüstungsdurchlagsübersicht"
 -- /rb sum physical weapondps
 --L["Sum Weapon DPS"] = true
 --L["Weapon DPS Summary"] = true
@@ -388,8 +394,11 @@ L["Weapon Skill <- Weapon Skill Rating"] = "Waffenfertigkeit <- Waffenfertigkeit
 L["Sum Expertise"] = "Waffenkunde zusammenrechnen"
 L["Expertise <- Expertise Rating"] = "Waffenkunde <- Waffenkundewertung"
 -- /rb sum physical exprating
-L["Sum Expertise Rating"] = "Waffenkundewertung zusammenrechnen"
-L["Expertise Rating Summary"] = "Waffenkundewertungsübersicht"
+--L["Sum Expertise Rating"] = true
+--L["Expertise Rating Summary"] = true
+-- /rb sum physical arprating
+L["Sum Armor Penetration Rating"] = "Rüstungsdurchlagwertung zusammenrechnen"
+L["Armor Penetration Rating Summary"] = "Rüstungsdurchlagwertungsübersicht"
 ---------------------------------------------------------------------------
 -- /rb sum spell
 L["Stat - Spell"] = "Werte - Zauber"
@@ -445,22 +454,34 @@ L["Stat - Tank"] = "Werte - Verteidigung"
 L["Choose tank stats for summary"] = "Wähle Verteidigungswerte für die Übersicht"
 -- /rb sum tank armor
 L["Sum Armor"] = "Rüstung zusammenrechnen"
-L["Armor <- Armor from items and bonuses"] = "Rüstung <- Rüstung von Gegenständen und Boni"
+L["Armor <- Armor from items, Armor from bonuses, Agility, Intellect"] = "Rüstung <- Rüstung von Gegenständen, Rüstung von Boni, Beweglichkeit, Intelligenz"
+-- /rb sum tank blockvalue
+L["Sum Block Value"] = "Blockwert zusammenrechnen"
+L["Block Value <- Block Value, Strength"] = "Blockwert <- Blockwert, Stärke"
 -- /rb sum tank dodge
 L["Sum Dodge Chance"] = "Ausweichchance zusammenrechnen"
-L["Dodge Chance <- Dodge Rating, Agility"] = "Ausweichchance <- Ausweichwertung, Beweglichkeit"
+L["Dodge Chance <- Dodge Rating, Agility, Defense Rating"] = "Ausweichchance <- Ausweichwertung, Beweglichkeit, Verteidigungswertung"
 -- /rb sum tank parry
 L["Sum Parry Chance"] = "Parierchance zusammenrechnen"
-L["Parry Chance <- Parry Rating"] = "Parierchance <- Parierwertung"
+L["Parry Chance <- Parry Rating, Defense Rating"] = "Parierchance <- Parierwertung, Verteidigungswertung"
 -- /rb sum tank block
 L["Sum Block Chance"] = "Blockchance zusammenrechnen"
-L["Block Chance <- Block Rating"] = " Blockchance <- Blockwertung"
+L["Block Chance <- Block Rating, Defense Rating"] = " Blockchance <- Blockwertung, Verteidigungswertung"
+-- /rb sum tank avoidhit
+L["Sum Hit Avoidance"] = "Treffervermeidung zusammenrechnen"
+L["Hit Avoidance <- Defense Rating"] = "Treffervermeidung <- Verteidigungswertung"
+-- /rb sum tank avoidcrit
+L["Sum Crit Avoidance"] = "Kritische Treffervermeidung"
+L["Crit Avoidance <- Defense Rating, Resilience"] = "Kritische Treffervermeidung <- Verteidigungswertung, Abhärtungswertung"
 -- /rb sum tank neglectdodge
 L["Sum Dodge Neglect"] = "Ausweichmissachtung zusammenrechnen"
-L["Dodge Neglect <- Expertise"] = "Ausweichmissachtung <- Waffenkunde"
+L["Dodge Neglect <- Expertise, Weapon Skill Rating"] = "Ausweichmissachtung <- Waffenkunde, Waffenfertigkeitswertung"
 -- /rb sum tank neglectparry
 L["Sum Parry Neglect"] = "Pariermissachtung zusammenrechnen"
-L["Parry Neglect <- Expertise"] = "Pariermissachtung <- Waffenkunde"
+L["Parry Neglect <- Expertise, Weapon Skill Rating"] = "Pariermissachtung <- Waffenkunde, Waffenfertigkeitswertung"
+-- /rb sum tank neglectblock
+L["Sum Block Neglect"] = "Blockmissachtung"
+L["Block Neglect <- Weapon Skill Rating"] = "Blockmissachtung <- Waffenfertigkeitswertung"
 -- /rb sum tank resarcane
 L["Sum Arcane Resistance"] = "Arkanwiderstand zusammenrechnen"
 L["Arcane Resistance Summary"] = "Arkanwiderstandsübersicht"
@@ -477,8 +498,8 @@ L["Frost Resistance Summary"] = "Frostwiderstandsübersicht"
 L["Sum Shadow Resistance"] = "Schattenwiderstand zusammenrechnen"
 L["Shadow Resistance Summary"] = "Schattenwiderstandsübersicht"
 -- /rb sum tank dodgerating
-L["Sum Dodge Rating"] = "Ausweichwertung zusammenrechnen"
-L["Dodge Rating Summary"] = "Ausweichwertungsübersicht"
+L["Sum Dodge Rating"] = "Verteidigungswertung zusammenrechnen"
+L["Dodge Rating Summary"] = "Verteidigungswertungsübersicht"
 -- /rb sum tank parryrating
 L["Sum Parry Rating"] = "Parierwertung zusammenrechnen"
 L["Parry Rating Summary"] = "Parierwertungsübersicht"
@@ -488,12 +509,15 @@ L["Block Rating Summary"] = "Blockwertungsübersicht"
 -- /rb sum tank res
 L["Sum Resilience"] = "Abhärtung zusammenrechnen"
 L["Resilience Summary"] = "Abhärtungsübersicht"
+-- /rb sum tank def
+L["Sum Defense"] = "Verteidigung zusammenrechnen"
+L["Defense <- Defense Rating"] = "Verteidigung <- Verteidigungswertung"
 -- /rb sum tank tp
 L["Sum TankPoints"] = "TankPoints zusammenrechnen"
 L["TankPoints <- Health, Total Reduction"] = "TankPoints <- Leben, Gesamtreduzierung"
 -- /rb sum tank tr
 L["Sum Total Reduction"] = "Gesamtreduzierung zusammenrechnen"
-L["Total Reduction <- Armor, Dodge, Parry, Block, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "Gesamtreduzierung <- Rüstung, Ausweichen, Parieren, Blocken, Gegner-Verfehlen, Gegner-Kritisch, Gegner-Schmettern, Schadensmodifikatoren"
+L["Total Reduction <- Armor, Dodge, Parry, Block, Block Value, Defense, Resilience, MobMiss, MobCrit, MobCrush, DamageTakenMods"] = "Gesamtreduzierung <- Rüstung, Ausweichen, Parieren, Blocken, Blockwert, Verteidigung, Abhärtung, Gegner-Verfehlen, Gegner-Kritisch, Gegner-Schmettern, Schadensmodifikatoren"
 -- /rb sum tank avoid
 L["Sum Avoidance"] = "Vermeidung zusammenrechnen"
 L["Avoidance <- Dodge, Parry, MobMiss, Block(Optional)"] = "Vermeidung <- Ausweichen, Parieren, Gegner-Verfehlen, Blocken (optional)"
@@ -671,7 +695,6 @@ L["statList"] = {
 	{pattern = "waffenkundewertung", id = CR_EXPERTISE},
 --	{pattern = "hit avoidance rating", id = CR_HIT_TAKEN_MELEE}, - seit 2.0.10 gibt es kein item mehr damit
 	{pattern = "rüstungsdurchschlagwertung", id = CR_ARMOR_PENETRATION},
-	{pattern = "meisterschaftswertung", id = CR_MASTERY},
 	{pattern = string.lower(ARMOR), id = ARMOR},
 	--[[
 	{pattern = "dagger skill rating", id = CR_WEAPON_SKILL},
