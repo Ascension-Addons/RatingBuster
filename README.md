@@ -1,3 +1,3 @@
-# Addon Name
+# Rating Buster
 
-This is the repository for <Addon Name>. Modified for Ascension.gg. 
+This is the repository for Rating Buster. Modified for Ascension.gg. 
